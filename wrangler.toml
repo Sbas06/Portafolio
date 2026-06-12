@@ -1,0 +1,19 @@
+name = "portafolio-sbas"
+main = "dist/_worker.js"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+# Create this namespace first:
+#   wrangler kv:namespace create PORTFOLIO_KV
+# Then replace YOUR_KV_NAMESPACE_ID with the returned id.
+[[kv_namespaces]]
+binding = "PORTFOLIO_KV"
+id = "61898f7a862641e8bb5addb52b69d27c"
+
+# Set secrets via CLI (do NOT commit passwords):
+#   wrangler secret put ADMIN_PASSWORD
+#   wrangler secret put SESSION_SECRET
+[vars]
+# Defaults only — override with `wrangler secret put`
+ADMIN_PASSWORD = "admin"
+SESSION_SECRET = "admin"

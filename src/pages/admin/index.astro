@@ -1,0 +1,74 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { getProjects, getExperience } from '../../lib/kv';
+
+const kv = Astro.locals.runtime?.env?.PORTFOLIO_KV;
+const projects = await getProjects(kv);
+const experience = await getExperience(kv);
+
+const visibleProjects = projects.filter(p => p.visible).length;
+const activeExp = experience.filter(e => e.status === 'active').length;
+---
+<AdminLayout title="Dashboard" section="DASHBOARD">
+  <div class="adm-page-head">
+    <h1>DASHBOARD</h1>
+    <div style="font-family:'VT323';font-size:17px;color:var(--ink-mute);">
+      ⚙ sistema operativo · 0xC0FFEE
+    </div>
+  </div>
+
+  <div class="adm-stat-grid">
+    <div class="adm-stat">
+      <div class="label">PROYECTOS</div>
+      <div class="val">{projects.length.toString().padStart(2, '0')}</div>
+      <div class="hint">{visibleProjects} visible · {projects.length - visibleProjects} hidden</div>
+      <div class="corner">◆</div>
+    </div>
+    <div class="adm-stat">
+      <div class="label">EXPERIENCIA</div>
+      <div class="val">{experience.length.toString().padStart(2, '0')}</div>
+      <div class="hint">{activeExp} active · {experience.length - activeExp} cleared</div>
+      <div class="corner">▲</div>
+    </div>
+    <div class="adm-stat">
+      <div class="label">NIVEL ACTUAL</div>
+      <div class="val">L9</div>
+      <div class="hint">8200 / 10000 XP</div>
+      <div class="corner">★</div>
+    </div>
+    <div class="adm-stat">
+      <div class="label">STATUS</div>
+      <div class="val" style="font-size:14px;color:var(--led);">ONLINE</div>
+      <div class="hint" style="color:var(--brass-dark);">⚓ MEDELLÍN, CO</div>
+      <div class="corner">⚙</div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;">
+    <!-- Quick actions -->
+    <div style="background:var(--panel);border:2px solid var(--line-strong);padding:24px;box-shadow:4px 4px 0 rgba(22,56,66,.08);">
+      <h3 style="font-size:10px;color:var(--sea-deep);margin:0 0 18px;">QUICK ACTIONS</h3>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <a href="/admin/projects/new" class="adm-btn" style="justify-content:center;">+ NEW PROJECT</a>
+        <a href="/admin/experience/new" class="adm-btn brass" style="justify-content:center;">+ NEW EXPERIENCE</a>
+        <a href="/" target="_blank" class="adm-btn ghost" style="justify-content:center;">VIEW PORTFOLIO ↗</a>
+      </div>
+    </div>
+
+    <!-- Recent projects -->
+    <div style="background:var(--panel);border:2px solid var(--line-strong);padding:24px;box-shadow:4px 4px 0 rgba(22,56,66,.08);">
+      <h3 style="font-size:10px;color:var(--sea-deep);margin:0 0 18px;">RECENT PROJECTS</h3>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        {projects.slice(0, 4).map(p => (
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--panel-2);border:2px solid var(--line);">
+            <div>
+              <div style="font-family:'Press Start 2P';font-size:8px;color:var(--ink);">{p.title}</div>
+              <div style="font-family:'VT323';font-size:17px;color:var(--ink-mute);">{p.year}</div>
+            </div>
+            <a href={`/admin/projects/${p.id}`} class="adm-btn sm ghost">EDIT</a>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</AdminLayout>

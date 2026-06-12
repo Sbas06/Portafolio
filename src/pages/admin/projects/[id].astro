@@ -1,0 +1,218 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { getProjects, setProjects } from '../../../lib/kv';
+import type { Project } from '../../../lib/types';
+
+const kv = Astro.locals.runtime?.env?.PORTFOLIO_KV;
+const { id } = Astro.params;
+let error = '';
+let success = '';
+
+const allProjects = await getProjects(kv);
+const project = allProjects.find(p => p.id === id);
+
+if (!project) {
+  return Astro.redirect('/admin/projects');
+}
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const action = form.get('_action') as string;
+
+  if (action === 'delete') {
+    if (kv) await setProjects(kv, allProjects.filter(p => p.id !== id));
+    return Astro.redirect('/admin/projects');
+  }
+
+  try {
+    const highlights: [string, string][] = [];
+    for (let i = 0; i < 6; i++) {
+      const lbl = (form.get(`hl_label_${i}`) as string)?.trim();
+      const desc = (form.get(`hl_desc_${i}`) as string)?.trim();
+      if (lbl && desc) highlights.push([lbl, desc]);
+    }
+
+    const stack: [string, string][] = [];
+    for (let i = 0; i < 8; i++) {
+      const name = (form.get(`stack_name_${i}`) as string)?.trim();
+      const cls = (form.get(`stack_cls_${i}`) as string)?.trim() || 't-sea';
+      if (name) stack.push([name, cls]);
+    }
+
+    const updated: Project = {
+      ...project,
+      no: (form.get('no') as string)?.trim() || project.no,
+      year: (form.get('year') as string)?.trim(),
+      kicker: (form.get('kicker') as string)?.trim(),
+      title: (form.get('title') as string)?.trim(),
+      meta: (form.get('meta') as string)?.trim(),
+      oneliner: (form.get('oneliner') as string)?.trim(),
+      ph: (form.get('ph') as string)?.trim(),
+      lede: (form.get('lede') as string)?.trim(),
+      highlights,
+      stack,
+      demoUrl: (form.get('demoUrl') as string)?.trim() || '',
+      codeUrl: (form.get('codeUrl') as string)?.trim() || '',
+      order: parseInt(form.get('order') as string) || project.order,
+      visible: form.get('visible') === 'on',
+      emblemStyle: (form.get('emblemStyle') as string)?.trim() || '',
+    };
+
+    const updatedAll = allProjects.map(p => p.id === id ? updated : p);
+    if (kv) await setProjects(kv, updatedAll);
+    return Astro.redirect('/admin/projects');
+  } catch (e: unknown) {
+    error = e instanceof Error ? e.message : 'Error al guardar.';
+  }
+}
+
+const p = project;
+const STACK_OPTIONS = ['t-sea','t-brass','t-foam','t-coral','t-led','t-cop'];
+---
+<AdminLayout title={`Editar: ${p.title}`} section="CONTENT" breadcrumb={`EDIT · ${p.id.toUpperCase()}`}>
+  <div class="adm-page-head">
+    <h1>EDITAR: {p.title}</h1>
+    <div style="display:flex;gap:10px;">
+      <form method="POST" onsubmit="return confirm('¿Eliminar este proyecto?')">
+        <input type="hidden" name="_action" value="delete" />
+        <button type="submit" class="adm-btn danger">ELIMINAR</button>
+      </form>
+      <a href="/admin/projects" class="adm-btn ghost">← VOLVER</a>
+    </div>
+  </div>
+
+  {error && <div class="adm-alert error">{error}</div>}
+  {success && <div class="adm-alert success">{success}</div>}
+
+  <form method="POST" class="adm-form">
+    <div class="adm-form-panel">
+      <h2>IDENTIDAD</h2>
+      <div class="adm-row cols-3">
+        <div class="adm-field">
+          <label class="adm-label">ID (no editable)</label>
+          <input class="adm-input" type="text" value={p.id} disabled style="opacity:.6" />
+        </div>
+        <div class="adm-field">
+          <label class="adm-label" for="no">NÚMERO</label>
+          <input class="adm-input" type="text" id="no" name="no" value={p.no} maxlength="3" />
+        </div>
+        <div class="adm-field">
+          <label class="adm-label" for="order">ORDEN</label>
+          <input class="adm-input" type="number" id="order" name="order" value={p.order} min="1" />
+        </div>
+      </div>
+      <div class="adm-row cols-2">
+        <div class="adm-field">
+          <label class="adm-label" for="title">TÍTULO <span>*</span></label>
+          <input class="adm-input" type="text" id="title" name="title" required value={p.title} />
+        </div>
+        <div class="adm-field">
+          <label class="adm-label" for="kicker">KICKER</label>
+          <input class="adm-input" type="text" id="kicker" name="kicker" value={p.kicker} />
+        </div>
+      </div>
+      <div class="adm-row cols-2">
+        <div class="adm-field">
+          <label class="adm-label" for="year">AÑO / PERÍODO</label>
+          <input class="adm-input" type="text" id="year" name="year" value={p.year} />
+        </div>
+        <div class="adm-field">
+          <label class="adm-label" for="meta">META</label>
+          <input class="adm-input" type="text" id="meta" name="meta" value={p.meta} />
+        </div>
+      </div>
+      <div class="adm-field">
+        <label class="adm-label" for="oneliner">DESCRIPCIÓN CORTA</label>
+        <input class="adm-input" type="text" id="oneliner" name="oneliner" value={p.oneliner} />
+      </div>
+      <div class="adm-field">
+        <label class="adm-label" for="lede">DESCRIPCIÓN COMPLETA</label>
+        <textarea class="adm-textarea" id="lede" name="lede" rows="3">{p.lede}</textarea>
+      </div>
+      <div class="adm-row cols-2">
+        <div class="adm-field">
+          <label class="adm-label" for="ph">PLACEHOLDER</label>
+          <input class="adm-input" type="text" id="ph" name="ph" value={p.ph} />
+        </div>
+        <div class="adm-field">
+          <label class="adm-label" for="emblemStyle">ESTILO EMBLEMA</label>
+          <input class="adm-input" type="text" id="emblemStyle" name="emblemStyle" value={p.emblemStyle || ''} />
+        </div>
+      </div>
+      <div class="adm-field">
+        <div class="adm-checkbox-wrap">
+          <input class="adm-checkbox" type="checkbox" id="visible" name="visible"
+            checked={p.visible} />
+          <label class="adm-checkbox-label" for="visible">Visible en el portfolio</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="adm-form-panel">
+      <h2>HIGHLIGHTS</h2>
+      <div class="adm-repeat" id="hl-container">
+        {p.highlights.map(([lbl, desc], i) => (
+          <div class="adm-repeat-row two">
+            <input class="adm-input" type="text" name={`hl_label_${i}`} value={lbl} placeholder="LABEL" />
+            <input class="adm-input" type="text" name={`hl_desc_${i}`} value={desc} placeholder="Descripción..." />
+            <button type="button" class="adm-remove-btn" onclick="this.closest('.adm-repeat-row').remove()">✕</button>
+          </div>
+        ))}
+        {Array.from({length: Math.max(0, 6 - p.highlights.length)}, (_, i) => i + p.highlights.length).map(i => (
+          <div class="adm-repeat-row two">
+            <input class="adm-input" type="text" name={`hl_label_${i}`} placeholder="LABEL" />
+            <input class="adm-input" type="text" name={`hl_desc_${i}`} placeholder="Descripción..." />
+            <button type="button" class="adm-remove-btn" onclick="this.closest('.adm-repeat-row').remove()">✕</button>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div class="adm-form-panel">
+      <h2>STACK</h2>
+      <div class="adm-repeat" id="stack-container">
+        {p.stack.map(([name, cls], i) => (
+          <div class="adm-repeat-row tech">
+            <input class="adm-input" type="text" name={`stack_name_${i}`} value={name} placeholder="TECH" />
+            <select class="adm-select" name={`stack_cls_${i}`}>
+              {STACK_OPTIONS.map(opt => (
+                <option value={opt} selected={cls === opt}>{opt}</option>
+              ))}
+            </select>
+            <button type="button" class="adm-remove-btn" onclick="this.closest('.adm-repeat-row').remove()">✕</button>
+          </div>
+        ))}
+        {Array.from({length: Math.max(0, 8 - p.stack.length)}, (_, i) => i + p.stack.length).map(i => (
+          <div class="adm-repeat-row tech">
+            <input class="adm-input" type="text" name={`stack_name_${i}`} placeholder="TECH" />
+            <select class="adm-select" name={`stack_cls_${i}`}>
+              {STACK_OPTIONS.map(opt => (
+                <option value={opt}>{opt}</option>
+              ))}
+            </select>
+            <button type="button" class="adm-remove-btn" onclick="this.closest('.adm-repeat-row').remove()">✕</button>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div class="adm-form-panel">
+      <h2>LINKS</h2>
+      <div class="adm-row cols-2">
+        <div class="adm-field">
+          <label class="adm-label" for="demoUrl">DEMO URL</label>
+          <input class="adm-input" type="url" id="demoUrl" name="demoUrl" value={p.demoUrl || ''} placeholder="https://..." />
+        </div>
+        <div class="adm-field">
+          <label class="adm-label" for="codeUrl">CÓDIGO URL</label>
+          <input class="adm-input" type="url" id="codeUrl" name="codeUrl" value={p.codeUrl || ''} placeholder="https://github.com/..." />
+        </div>
+      </div>
+    </div>
+
+    <div class="adm-form-actions">
+      <button type="submit" class="adm-btn">▶ GUARDAR CAMBIOS</button>
+      <a href="/admin/projects" class="adm-btn ghost">CANCELAR</a>
+    </div>
+  </form>
+</AdminLayout>

@@ -1,0 +1,79 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { getExperience, setExperience } from '../../../lib/kv';
+
+const kv = Astro.locals.runtime?.env?.PORTFOLIO_KV;
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const action = form.get('_action') as string;
+  const id = form.get('id') as string;
+  if (action === 'delete' && id && kv) {
+    const experience = await getExperience(kv);
+    await setExperience(kv, experience.filter(e => e.id !== id));
+  }
+  return Astro.redirect('/admin/experience');
+}
+
+const experience = (await getExperience(kv)).sort((a, b) => a.order - b.order);
+const statusLabel: Record<string, string> = { active: 'ACTIVE', done: 'CLEARED', archive: 'ARCHIVED' };
+const statusBadge: Record<string, string> = { active: 'badge-active', done: 'badge-done', archive: 'badge-archive' };
+---
+<AdminLayout title="Experiencia" section="CONTENT" breadcrumb="EXPERIENCIA">
+  <div class="adm-page-head">
+    <h1>EXPERIENCIA</h1>
+    <a href="/admin/experience/new" class="adm-btn">+ NUEVA ENTRADA</a>
+  </div>
+
+  <div class="adm-table-wrap">
+    <table class="adm-table">
+      <thead>
+        <tr>
+          <th>LVL</th>
+          <th>ROL</th>
+          <th>EMPRESA</th>
+          <th>PERÍODO</th>
+          <th>STATUS</th>
+          <th>ACCIONES</th>
+        </tr>
+      </thead>
+      <tbody>
+        {experience.map(e => (
+          <tr>
+            <td>
+              <span style="font-family:'Press Start 2P';font-size:10px;color:var(--brass);">{e.lvl}</span>
+            </td>
+            <td>
+              <div style="font-family:'Press Start 2P';font-size:9px;color:var(--ink);">{e.role}</div>
+              <div style="font-family:'VT323';font-size:17px;color:var(--ink-mute);">{e.subrole}</div>
+            </td>
+            <td style="color:var(--sea-deep);">{e.company}</td>
+            <td style="font-family:'Press Start 2P';font-size:8px;color:var(--ink-mute);">{e.dates}</td>
+            <td>
+              <span class:list={['badge', statusBadge[e.status] ?? 'badge-done']}>
+                {statusLabel[e.status] ?? e.status}
+              </span>
+            </td>
+            <td>
+              <div class="col-actions">
+                <a href={`/admin/experience/${e.id}`} class="adm-btn sm">EDIT</a>
+                <form method="POST" onsubmit="return confirm('¿Eliminar esta entrada?')">
+                  <input type="hidden" name="_action" value="delete" />
+                  <input type="hidden" name="id" value={e.id} />
+                  <button type="submit" class="adm-btn sm danger">DEL</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        ))}
+        {experience.length === 0 && (
+          <tr>
+            <td colspan="6" style="text-align:center;color:var(--ink-mute);padding:32px;">
+              No hay entradas. <a href="/admin/experience/new">Agrega una</a>.
+            </td>
+          </tr>
+        )}
+      </tbody>
+    </table>
+  </div>
+</AdminLayout>

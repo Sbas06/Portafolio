@@ -1,0 +1,100 @@
+---
+import { createSession } from '../../lib/auth';
+
+// Redirect if already logged in
+const token = Astro.cookies.get('session')?.value;
+if (token) {
+  const kv = Astro.locals.runtime?.env?.PORTFOLIO_KV;
+  if (kv) {
+    const val = await kv.get(`session:${token}`);
+    if (val) return Astro.redirect('/admin');
+  } else {
+    return Astro.redirect('/admin');
+  }
+}
+
+let error = '';
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const password = (form.get('password') as string) ?? '';
+  const expectedPassword = Astro.locals.runtime?.env?.ADMIN_PASSWORD ?? 'admin';
+
+  if (password === expectedPassword) {
+    const kv = Astro.locals.runtime?.env?.PORTFOLIO_KV;
+    let sessionToken: string;
+    if (kv) {
+      sessionToken = await createSession(kv);
+    } else {
+      // Dev mode: accept any non-empty password
+      sessionToken = 'dev-session-' + crypto.randomUUID();
+    }
+    Astro.cookies.set('session', sessionToken, {
+      httpOnly: true,
+      secure: Astro.url.protocol === 'https:',
+      sameSite: 'strict',
+      path: '/',
+      maxAge: 86400,
+    });
+    return Astro.redirect('/admin');
+  } else {
+    error = 'Contraseña incorrecta. Verifica e intenta de nuevo.';
+  }
+}
+
+const searchError = Astro.url.searchParams.get('error');
+if (searchError && !error) error = 'Sesión expirada. Inicia sesión de nuevo.';
+---
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin Login — Sbas Portfolio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/styles/admin.css" />
+</head>
+<body>
+  <div class="adm-login-wrap">
+    <div class="adm-login-box">
+      <div class="logo">⚓ <span>SBAS</span>.DEV</div>
+      <div class="tagline">// admin access terminal</div>
+
+      <div class="adm-login-panel">
+        <h2>AUTHENTICATE</h2>
+
+        {error && (
+          <div class="adm-alert error">{error}</div>
+        )}
+
+        <form method="POST">
+          <div class="adm-field">
+            <label class="adm-label" for="password">PASSWORD <span>*</span></label>
+            <input
+              class="adm-input"
+              type="password"
+              id="password"
+              name="password"
+              autocomplete="current-password"
+              required
+              autofocus
+              placeholder="Enter password..."
+            />
+          </div>
+          <div style="margin-top:22px;">
+            <button type="submit" class="adm-btn" style="width:100%;justify-content:center;">
+              ▶ LOGIN
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div style="text-align:center;margin-top:16px;font-family:'Press Start 2P';font-size:7px;color:var(--ink-mute);letter-spacing:.08em;">
+        <a href="/" style="color:var(--sea);text-decoration:none;">← VER PORTFOLIO</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

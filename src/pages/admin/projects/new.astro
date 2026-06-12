@@ -1,0 +1,211 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { getProjects, setProjects } from '../../../lib/kv';
+import type { Project } from '../../../lib/types';
+
+const kv = Astro.locals.runtime?.env?.PORTFOLIO_KV;
+let error = '';
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  try {
+    const id = (form.get('id') as string).trim().toLowerCase().replace(/\s+/g, '-');
+    if (!id) throw new Error('El ID es requerido.');
+
+    const projects = await getProjects(kv);
+    if (projects.find(p => p.id === id)) throw new Error(`Ya existe un proyecto con ID "${id}".`);
+
+    const highlights: [string, string][] = [];
+    for (let i = 0; i < 6; i++) {
+      const lbl = (form.get(`hl_label_${i}`) as string)?.trim();
+      const desc = (form.get(`hl_desc_${i}`) as string)?.trim();
+      if (lbl && desc) highlights.push([lbl, desc]);
+    }
+
+    const stack: [string, string][] = [];
+    for (let i = 0; i < 8; i++) {
+      const name = (form.get(`stack_name_${i}`) as string)?.trim();
+      const cls = (form.get(`stack_cls_${i}`) as string)?.trim() || 't-sea';
+      if (name) stack.push([name, cls]);
+    }
+
+    const newProject: Project = {
+      id,
+      no: (form.get('no') as string).trim() || String(projects.length + 1).padStart(2, '0'),
+      year: (form.get('year') as string).trim(),
+      kicker: (form.get('kicker') as string).trim(),
+      title: (form.get('title') as string).trim(),
+      meta: (form.get('meta') as string).trim(),
+      oneliner: (form.get('oneliner') as string).trim(),
+      ph: (form.get('ph') as string).trim(),
+      lede: (form.get('lede') as string).trim(),
+      highlights,
+      stack,
+      demoUrl: (form.get('demoUrl') as string)?.trim() || '',
+      codeUrl: (form.get('codeUrl') as string)?.trim() || '',
+      order: parseInt(form.get('order') as string) || projects.length + 1,
+      visible: form.get('visible') === 'on',
+      emblemStyle: (form.get('emblemStyle') as string)?.trim() || '',
+    };
+
+    if (kv) await setProjects(kv, [...projects, newProject]);
+    return Astro.redirect('/admin/projects');
+  } catch (e: unknown) {
+    error = e instanceof Error ? e.message : 'Error al guardar el proyecto.';
+  }
+}
+---
+<AdminLayout title="Nuevo Proyecto" section="CONTENT" breadcrumb="NUEVO PROYECTO">
+  <div class="adm-page-head">
+    <h1>NUEVO PROYECTO</h1>
+    <a href="/admin/projects" class="adm-btn ghost">← VOLVER</a>
+  </div>
+
+  {error && <div class="adm-alert error">{error}</div>}
+
+  <form method="POST" class="adm-form">
+    <div class="adm-form-panel">
+      <h2>IDENTIDAD</h2>
+      <div class="adm-row cols-3">
+        <div class="adm-field">
+          <label class="adm-label" for="id">ID <span>*</span></label>
+          <input class="adm-input" type="text" id="id" name="id" required placeholder="shopify" />
+          <div class="adm-hint">Slug único, sin espacios. Ej: "mi-proyecto"</div>
+        </div>
+        <div class="adm-field">
+          <label class="adm-label" for="no">NÚMERO</label>
+          <input class="adm-input" type="text" id="no" name="no" placeholder="07" maxlength="3" />
+        </div>
+        <div class="adm-field">
+          <label class="adm-label" for="order">ORDEN</label>
+          <input class="adm-input" type="number" id="order" name="order" placeholder="7" min="1" />
+        </div>
+      </div>
+      <div class="adm-row cols-2">
+        <div class="adm-field">
+          <label class="adm-label" for="title">TÍTULO <span>*</span></label>
+          <input class="adm-input" type="text" id="title" name="title" required placeholder="MY PROJECT" />
+        </div>
+        <div class="adm-field">
+          <label class="adm-label" for="kicker">KICKER</label>
+          <input class="adm-input" type="text" id="kicker" name="kicker" placeholder="E-COMMERCE · SHOPIFY" />
+        </div>
+      </div>
+      <div class="adm-row cols-2">
+        <div class="adm-field">
+          <label class="adm-label" for="year">AÑO / PERÍODO</label>
+          <input class="adm-input" type="text" id="year" name="year" placeholder="2024 — NOW" />
+        </div>
+        <div class="adm-field">
+          <label class="adm-label" for="meta">META (empresa/rol)</label>
+          <input class="adm-input" type="text" id="meta" name="meta" placeholder="Dev @ Empresa" />
+        </div>
+      </div>
+      <div class="adm-field">
+        <label class="adm-label" for="oneliner">DESCRIPCIÓN CORTA (tarjeta)</label>
+        <input class="adm-input" type="text" id="oneliner" name="oneliner" placeholder="Una línea que describe el proyecto." />
+      </div>
+      <div class="adm-field">
+        <label class="adm-label" for="lede">DESCRIPCIÓN COMPLETA (sheet popup)</label>
+        <textarea class="adm-textarea" id="lede" name="lede" rows="3" placeholder="Descripción detallada para el panel de detalle..."></textarea>
+      </div>
+      <div class="adm-row cols-2">
+        <div class="adm-field">
+          <label class="adm-label" for="ph">PLACEHOLDER SCREENSHOT</label>
+          <input class="adm-input" type="text" id="ph" name="ph" placeholder="STOREFRONT\nCAPTURE" />
+        </div>
+        <div class="adm-field">
+          <label class="adm-label" for="emblemStyle">ESTILO EMBLEMA (CSS inline)</label>
+          <input class="adm-input" type="text" id="emblemStyle" name="emblemStyle" placeholder="background:linear-gradient(...);" />
+        </div>
+      </div>
+      <div class="adm-field">
+        <div class="adm-checkbox-wrap">
+          <input class="adm-checkbox" type="checkbox" id="visible" name="visible" checked />
+          <label class="adm-checkbox-label" for="visible">Visible en el portfolio</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="adm-form-panel">
+      <h2>HIGHLIGHTS (máx 6)</h2>
+      <div class="adm-repeat" id="hl-container">
+        {[0,1,2].map(i => (
+          <div class="adm-repeat-row two">
+            <input class="adm-input" type="text" name={`hl_label_${i}`} placeholder="−25%" />
+            <input class="adm-input" type="text" name={`hl_desc_${i}`} placeholder="Descripción del highlight..." />
+            <button type="button" class="adm-remove-btn" onclick="this.closest('.adm-repeat-row').remove()">✕</button>
+          </div>
+        ))}
+      </div>
+      <button type="button" class="adm-add-btn" id="hl-add">+ ADD HIGHLIGHT</button>
+    </div>
+
+    <div class="adm-form-panel">
+      <h2>STACK (máx 8)</h2>
+      <div class="adm-repeat" id="stack-container">
+        {[0,1,2].map(i => (
+          <div class="adm-repeat-row tech">
+            <input class="adm-input" type="text" name={`stack_name_${i}`} placeholder="REACT" />
+            <select class="adm-select" name={`stack_cls_${i}`}>
+              <option value="t-sea">t-sea (teal)</option>
+              <option value="t-brass">t-brass (brass)</option>
+              <option value="t-foam">t-foam (foam)</option>
+              <option value="t-coral">t-coral (coral)</option>
+              <option value="t-led">t-led (green)</option>
+              <option value="t-cop">t-cop (copper)</option>
+            </select>
+            <button type="button" class="adm-remove-btn" onclick="this.closest('.adm-repeat-row').remove()">✕</button>
+          </div>
+        ))}
+      </div>
+      <button type="button" class="adm-add-btn" id="stack-add">+ ADD TECH</button>
+    </div>
+
+    <div class="adm-form-panel">
+      <h2>LINKS</h2>
+      <div class="adm-row cols-2">
+        <div class="adm-field">
+          <label class="adm-label" for="demoUrl">DEMO URL</label>
+          <input class="adm-input" type="url" id="demoUrl" name="demoUrl" placeholder="https://..." />
+        </div>
+        <div class="adm-field">
+          <label class="adm-label" for="codeUrl">CÓDIGO URL</label>
+          <input class="adm-input" type="url" id="codeUrl" name="codeUrl" placeholder="https://github.com/..." />
+        </div>
+      </div>
+    </div>
+
+    <div class="adm-form-actions">
+      <button type="submit" class="adm-btn">▶ GUARDAR PROYECTO</button>
+      <a href="/admin/projects" class="adm-btn ghost">CANCELAR</a>
+    </div>
+  </form>
+
+  <script>
+    let hlCount = 3;
+    let stackCount = 3;
+    document.getElementById('hl-add')?.addEventListener('click', () => {
+      if (hlCount >= 6) return;
+      const div = document.createElement('div');
+      div.className = 'adm-repeat-row two';
+      div.innerHTML = `<input class="adm-input" type="text" name="hl_label_${hlCount}" placeholder="LABEL" />
+        <input class="adm-input" type="text" name="hl_desc_${hlCount}" placeholder="Descripción..." />
+        <button type="button" class="adm-remove-btn" onclick="this.closest('.adm-repeat-row').remove()">✕</button>`;
+      document.getElementById('hl-container')?.appendChild(div);
+      hlCount++;
+    });
+    document.getElementById('stack-add')?.addEventListener('click', () => {
+      if (stackCount >= 8) return;
+      const optHtml = ['t-sea','t-brass','t-foam','t-coral','t-led','t-cop']
+        .map(v => `<option value="${v}">${v}</option>`).join('');
+      const div = document.createElement('div');
+      div.className = 'adm-repeat-row tech';
+      div.innerHTML = `<input class="adm-input" type="text" name="stack_name_${stackCount}" placeholder="TECH" />
+        <select class="adm-select" name="stack_cls_${stackCount}">${optHtml}</select>
+        <button type="button" class="adm-remove-btn" onclick="this.closest('.adm-repeat-row').remove()">✕</button>`;
+      document.getElementById('stack-container')?.appendChild(div);
+      stackCount++;
+    });
+  </script>
+</AdminLayout>

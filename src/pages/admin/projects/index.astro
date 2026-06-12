@@ -1,0 +1,82 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { getProjects, setProjects } from '../../../lib/kv';
+
+const kv = Astro.locals.runtime?.env?.PORTFOLIO_KV;
+
+// Handle DELETE action
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const action = form.get('_action') as string;
+  const id = form.get('id') as string;
+  if (action === 'delete' && id && kv) {
+    const projects = await getProjects(kv);
+    const updated = projects.filter(p => p.id !== id);
+    await setProjects(kv, updated);
+  }
+  return Astro.redirect('/admin/projects');
+}
+
+const projects = (await getProjects(kv)).sort((a, b) => a.order - b.order);
+---
+<AdminLayout title="Proyectos" section="CONTENT" breadcrumb="PROYECTOS">
+  <div class="adm-page-head">
+    <h1>PROYECTOS</h1>
+    <a href="/admin/projects/new" class="adm-btn">+ NUEVO PROYECTO</a>
+  </div>
+
+  <div class="adm-table-wrap">
+    <table class="adm-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>TÍTULO</th>
+          <th>KICKER</th>
+          <th>AÑO</th>
+          <th>STATUS</th>
+          <th>ACCIONES</th>
+        </tr>
+      </thead>
+      <tbody>
+        {projects.map(p => (
+          <tr>
+            <td>
+              <span style="font-family:'Press Start 2P';font-size:9px;color:var(--brass);">
+                {p.no}
+              </span>
+            </td>
+            <td>
+              <div style="font-family:'Press Start 2P';font-size:9px;color:var(--ink);">{p.title}</div>
+              <div style="font-family:'VT323';font-size:17px;color:var(--ink-mute);">{p.oneliner}</div>
+            </td>
+            <td style="font-size:16px;color:var(--ink-soft);">{p.kicker}</td>
+            <td style="font-size:16px;">{p.year}</td>
+            <td>
+              {p.visible
+                ? <span class="badge badge-visible">VISIBLE</span>
+                : <span class="badge badge-hidden">HIDDEN</span>
+              }
+            </td>
+            <td>
+              <div class="col-actions">
+                <a href={`/admin/projects/${p.id}`} class="adm-btn sm">EDIT</a>
+                <form method="POST" onsubmit="return confirm('¿Eliminar este proyecto?')">
+                  <input type="hidden" name="_action" value="delete" />
+                  <input type="hidden" name="id" value={p.id} />
+                  <button type="submit" class="adm-btn sm danger">DEL</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        ))}
+        {projects.length === 0 && (
+          <tr>
+            <td colspan="6" style="text-align:center;color:var(--ink-mute);padding:32px;">
+              No hay proyectos. <a href="/admin/projects/new">Agrega uno</a>.
+            </td>
+          </tr>
+        )}
+      </tbody>
+    </table>
+  </div>
+</AdminLayout>

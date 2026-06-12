@@ -1,0 +1,110 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { getExperience, setExperience } from '../../../lib/kv';
+import type { ExperienceEntry } from '../../../lib/types';
+
+const kv = Astro.locals.runtime?.env?.PORTFOLIO_KV;
+const { id } = Astro.params;
+let error = '';
+
+const allEntries = await getExperience(kv);
+const entry = allEntries.find(e => e.id === id);
+
+if (!entry) return Astro.redirect('/admin/experience');
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const action = form.get('_action') as string;
+
+  if (action === 'delete') {
+    if (kv) await setExperience(kv, allEntries.filter(e => e.id !== id));
+    return Astro.redirect('/admin/experience');
+  }
+
+  try {
+    const status = (form.get('status') as string) as 'active' | 'done' | 'archive';
+    const updated: ExperienceEntry = {
+      ...entry,
+      lvl: (form.get('lvl') as string)?.trim() || entry.lvl,
+      role: (form.get('role') as string)?.trim() || entry.role,
+      subrole: (form.get('subrole') as string)?.trim() || '',
+      company: (form.get('company') as string)?.trim() || entry.company,
+      dates: (form.get('dates') as string)?.trim() || entry.dates,
+      status: ['active','done','archive'].includes(status) ? status : entry.status,
+      order: parseInt(form.get('order') as string) || entry.order,
+    };
+
+    if (kv) await setExperience(kv, allEntries.map(e => e.id === id ? updated : e));
+    return Astro.redirect('/admin/experience');
+  } catch (e: unknown) {
+    error = e instanceof Error ? e.message : 'Error al guardar.';
+  }
+}
+
+const e = entry;
+---
+<AdminLayout title={`Editar: ${e.role}`} section="CONTENT" breadcrumb={`EDIT · ${e.id.toUpperCase()}`}>
+  <div class="adm-page-head">
+    <h1>EDITAR: {e.lvl}</h1>
+    <div style="display:flex;gap:10px;">
+      <form method="POST" onsubmit="return confirm('¿Eliminar esta entrada?')">
+        <input type="hidden" name="_action" value="delete" />
+        <button type="submit" class="adm-btn danger">ELIMINAR</button>
+      </form>
+      <a href="/admin/experience" class="adm-btn ghost">← VOLVER</a>
+    </div>
+  </div>
+
+  {error && <div class="adm-alert error">{error}</div>}
+
+  <form method="POST" class="adm-form">
+    <div class="adm-form-panel">
+      <h2>DATOS</h2>
+      <div class="adm-row cols-3">
+        <div class="adm-field">
+          <label class="adm-label">ID (no editable)</label>
+          <input class="adm-input" type="text" value={e.id} disabled style="opacity:.6" />
+        </div>
+        <div class="adm-field">
+          <label class="adm-label" for="lvl">NIVEL</label>
+          <input class="adm-input" type="text" id="lvl" name="lvl" value={e.lvl} maxlength="4" />
+        </div>
+        <div class="adm-field">
+          <label class="adm-label" for="order">ORDEN</label>
+          <input class="adm-input" type="number" id="order" name="order" value={e.order} min="1" />
+        </div>
+      </div>
+      <div class="adm-field">
+        <label class="adm-label" for="role">ROL <span>*</span></label>
+        <input class="adm-input" type="text" id="role" name="role" required value={e.role} />
+      </div>
+      <div class="adm-field">
+        <label class="adm-label" for="subrole">DESCRIPCIÓN CORTA</label>
+        <input class="adm-input" type="text" id="subrole" name="subrole" value={e.subrole} />
+      </div>
+      <div class="adm-row cols-2">
+        <div class="adm-field">
+          <label class="adm-label" for="company">EMPRESA</label>
+          <input class="adm-input" type="text" id="company" name="company" value={e.company} />
+        </div>
+        <div class="adm-field">
+          <label class="adm-label" for="dates">PERÍODO</label>
+          <input class="adm-input" type="text" id="dates" name="dates" value={e.dates} />
+        </div>
+      </div>
+      <div class="adm-field">
+        <label class="adm-label" for="status">STATUS</label>
+        <select class="adm-select" id="status" name="status">
+          <option value="active" selected={e.status === 'active'}>ACTIVE</option>
+          <option value="done" selected={e.status === 'done'}>CLEARED</option>
+          <option value="archive" selected={e.status === 'archive'}>ARCHIVED</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="adm-form-actions">
+      <button type="submit" class="adm-btn">▶ GUARDAR CAMBIOS</button>
+      <a href="/admin/experience" class="adm-btn ghost">CANCELAR</a>
+    </div>
+  </form>
+</AdminLayout>

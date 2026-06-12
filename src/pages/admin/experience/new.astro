@@ -1,0 +1,96 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { getExperience, setExperience } from '../../../lib/kv';
+import type { ExperienceEntry } from '../../../lib/types';
+
+const kv = Astro.locals.runtime?.env?.PORTFOLIO_KV;
+let error = '';
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  try {
+    const id = (form.get('id') as string).trim().toLowerCase().replace(/\s+/g, '-');
+    if (!id) throw new Error('El ID es requerido.');
+
+    const experience = await getExperience(kv);
+    if (experience.find(e => e.id === id)) throw new Error(`Ya existe una entrada con ID "${id}".`);
+
+    const status = (form.get('status') as string) as 'active' | 'done' | 'archive';
+    const entry: ExperienceEntry = {
+      id,
+      lvl: (form.get('lvl') as string).trim(),
+      role: (form.get('role') as string).trim(),
+      subrole: (form.get('subrole') as string).trim(),
+      company: (form.get('company') as string).trim(),
+      dates: (form.get('dates') as string).trim(),
+      status: ['active','done','archive'].includes(status) ? status : 'done',
+      order: parseInt(form.get('order') as string) || experience.length + 1,
+    };
+
+    if (kv) await setExperience(kv, [...experience, entry]);
+    return Astro.redirect('/admin/experience');
+  } catch (e: unknown) {
+    error = e instanceof Error ? e.message : 'Error al guardar.';
+  }
+}
+---
+<AdminLayout title="Nueva Entrada" section="CONTENT" breadcrumb="NUEVA EXPERIENCIA">
+  <div class="adm-page-head">
+    <h1>NUEVA EXPERIENCIA</h1>
+    <a href="/admin/experience" class="adm-btn ghost">← VOLVER</a>
+  </div>
+
+  {error && <div class="adm-alert error">{error}</div>}
+
+  <form method="POST" class="adm-form">
+    <div class="adm-form-panel">
+      <h2>DATOS</h2>
+      <div class="adm-row cols-3">
+        <div class="adm-field">
+          <label class="adm-label" for="id">ID <span>*</span></label>
+          <input class="adm-input" type="text" id="id" name="id" required placeholder="e10" />
+          <div class="adm-hint">Slug único. Ej: "e10"</div>
+        </div>
+        <div class="adm-field">
+          <label class="adm-label" for="lvl">NIVEL</label>
+          <input class="adm-input" type="text" id="lvl" name="lvl" placeholder="L10" maxlength="4" />
+        </div>
+        <div class="adm-field">
+          <label class="adm-label" for="order">ORDEN</label>
+          <input class="adm-input" type="number" id="order" name="order" placeholder="10" min="1" />
+        </div>
+      </div>
+      <div class="adm-field">
+        <label class="adm-label" for="role">ROL <span>*</span></label>
+        <input class="adm-input" type="text" id="role" name="role" required placeholder="SOFTWARE DEVELOPER" />
+      </div>
+      <div class="adm-field">
+        <label class="adm-label" for="subrole">DESCRIPCIÓN CORTA</label>
+        <input class="adm-input" type="text" id="subrole" name="subrole" placeholder="React · Node · tecnologías clave" />
+      </div>
+      <div class="adm-row cols-2">
+        <div class="adm-field">
+          <label class="adm-label" for="company">EMPRESA</label>
+          <input class="adm-input" type="text" id="company" name="company" placeholder="Empresa S.A." />
+        </div>
+        <div class="adm-field">
+          <label class="adm-label" for="dates">PERÍODO</label>
+          <input class="adm-input" type="text" id="dates" name="dates" placeholder="ENE — DIC 2025" />
+        </div>
+      </div>
+      <div class="adm-field">
+        <label class="adm-label" for="status">STATUS</label>
+        <select class="adm-select" id="status" name="status">
+          <option value="active">ACTIVE</option>
+          <option value="done" selected>CLEARED</option>
+          <option value="archive">ARCHIVED</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="adm-form-actions">
+      <button type="submit" class="adm-btn">▶ GUARDAR ENTRADA</button>
+      <a href="/admin/experience" class="adm-btn ghost">CANCELAR</a>
+    </div>
+  </form>
+</AdminLayout>
