@@ -1,0 +1,155 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { getAbout, setAbout, DEFAULT_ABOUT } from '../../lib/kv';
+import type { About } from '../../lib/types';
+
+const kv = Astro.locals.runtime?.env?.PORTFOLIO_KV;
+
+let success = false;
+let error = '';
+
+if (Astro.request.method === 'POST') {
+  try {
+    const fd = await Astro.request.formData();
+    const skillNames  = fd.getAll('skill_name')  as string[];
+    const skillColors = fd.getAll('skill_color') as string[];
+    const skills: [string, string][] = skillNames
+      .map((n, i) => [n.trim(), skillColors[i]?.trim() || 't-sea'] as [string, string])
+      .filter(([n]) => n.length > 0);
+
+    const updated: About = {
+      hi:    (fd.get('hi')    as string || '').trim(),
+      bio1:  (fd.get('bio1')  as string || '').trim(),
+      bio2:  (fd.get('bio2')  as string || '').trim(),
+      years: (fd.get('years') as string || '').trim(),
+      skills,
+    };
+
+    if (kv) {
+      await setAbout(kv, updated);
+    }
+    success = true;
+  } catch (e) {
+    error = String(e);
+  }
+}
+
+const about = await getAbout(kv);
+
+const COLOR_OPTIONS = [
+  { value: 't-sea',   label: 'Sea (cyan)' },
+  { value: 't-brass', label: 'Brass (gold)' },
+  { value: 't-foam',  label: 'Foam (teal)' },
+  { value: 't-led',   label: 'LED (green)' },
+  { value: 't-coral', label: 'Coral (red)' },
+  { value: 't-cop',   label: 'Copper' },
+];
+---
+<AdminLayout title="Sobre Mí" section="SOBRE MÍ">
+  <div class="adm-page-head">
+    <h1>SOBRE MÍ</h1>
+    <div style="font-family:'VT323';font-size:17px;color:var(--ink-mute);">
+      ⚓ editar sección Captain's Bio
+    </div>
+  </div>
+
+  {success && (
+    <div class="adm-alert ok">✔ Guardado correctamente.</div>
+  )}
+  {error && (
+    <div class="adm-alert err">✘ Error: {error}</div>
+  )}
+
+  <form method="POST" class="adm-form">
+
+    <div class="adm-form-section">PRESENTACIÓN</div>
+
+    <label class="adm-label">
+      Párrafo "Hi" (puede contener HTML, ej: &lt;span class="sea"&gt;Sebastián&lt;/span&gt;)
+      <textarea name="hi" class="adm-input" rows="3">{about.hi}</textarea>
+    </label>
+
+    <label class="adm-label">
+      Bio — párrafo 1
+      <textarea name="bio1" class="adm-input" rows="4">{about.bio1}</textarea>
+    </label>
+
+    <label class="adm-label">
+      Bio — párrafo 2
+      <textarea name="bio2" class="adm-input" rows="4">{about.bio2}</textarea>
+    </label>
+
+    <label class="adm-label" style="max-width:200px;">
+      Años a bordo (solo el número)
+      <input type="text" name="years" class="adm-input" value={about.years} maxlength="4" />
+    </label>
+
+    <div class="adm-form-section">HABILIDADES</div>
+    <p style="font-family:'VT323';font-size:18px;color:var(--ink-mute);margin:0 0 16px;">
+      Hasta 15 chips. Deja el nombre en blanco para omitir.
+    </p>
+
+    <div class="adm-skills-grid" id="skills-grid">
+      {Array.from({ length: 15 }, (_, i) => {
+        const skill = about.skills[i];
+        return (
+          <div class="adm-skill-row">
+            <input
+              type="text"
+              name="skill_name"
+              class="adm-input"
+              placeholder={`Skill ${i + 1}`}
+              value={skill ? skill[0] : ''}
+            />
+            <select name="skill_color" class="adm-input adm-select">
+              {COLOR_OPTIONS.map(opt => (
+                <option value={opt.value} selected={skill ? skill[1] === opt.value : opt.value === 't-sea'}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        );
+      })}
+    </div>
+
+    <div style="display:flex;gap:14px;margin-top:28px;flex-wrap:wrap;">
+      <button type="submit" class="adm-btn">GUARDAR CAMBIOS</button>
+      <a href="/" target="_blank" class="adm-btn ghost">VER PORTFOLIO ↗</a>
+    </div>
+  </form>
+</AdminLayout>
+
+<style>
+  .adm-skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .adm-skill-row {
+    display: grid;
+    grid-template-columns: 1fr 160px;
+    gap: 8px;
+  }
+  .adm-select { cursor: pointer; }
+  .adm-alert {
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    letter-spacing: 0.06em;
+  }
+  .adm-alert.ok  { background: #e8f6f0; border: 2px solid var(--led); color: #2a6e50; }
+  .adm-alert.err { background: #fdf0ef; border: 2px solid var(--coral); color: #a03030; }
+  .adm-form-section {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    color: var(--brass-dark);
+    letter-spacing: 0.1em;
+    padding: 12px 0 10px;
+    border-bottom: 2px solid var(--line);
+    margin: 20px 0 16px;
+  }
+  .adm-form-section:first-of-type { margin-top: 0; }
+</style>

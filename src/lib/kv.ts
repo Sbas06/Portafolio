@@ -1,4 +1,16 @@
-import type { Project, ExperienceEntry } from './types';
+import type { Project, ExperienceEntry, About, Contact } from './types';
+
+export const DEFAULT_ABOUT: About = {
+  hi: 'Hola, soy <span class="sea">Sebastián</span> — desarrollador de software desde Medellín, Colombia.',
+  bio1: 'Fullstack con raíz en mecatrónica: me muevo cómodo entre el hardware, el sistema y la interfaz. Construyo storefronts Shopify, plataformas MERN, experiencias 3D en la web y pipelines de DevOps que entregan sin fricción.',
+  bio2: 'Me gusta el código limpio, escalable y bien documentado — y los retos donde la electrónica, la web y la automatización se cruzan. Siempre listo para zarpar hacia el siguiente puerto.',
+  years: '08',
+  skills: [
+    ['REACT', 't-sea'], ['NODE.JS', 't-brass'], ['SHOPIFY', 't-foam'],
+    ['DOCKER', 't-led'], ['AZURE', 't-sea'], ['THREE.JS', 't-coral'],
+    ['PYTHON', 't-brass'], ['PHP', 't-foam'], ['MECATRÓNICA', 't-sea'],
+  ],
+};
 
 export const DEFAULT_PROJECTS: Project[] = [
   {
@@ -134,4 +146,44 @@ export async function getExperience(kv: KVNamespace | undefined): Promise<Experi
 
 export async function setExperience(kv: KVNamespace, experience: ExperienceEntry[]): Promise<void> {
   await kv.put('experience', JSON.stringify(experience));
+}
+
+export async function getAbout(kv: KVNamespace | undefined): Promise<About> {
+  if (!kv) return DEFAULT_ABOUT;
+  try {
+    const data = await kv.get('about', 'json') as About | null;
+    return data ?? DEFAULT_ABOUT;
+  } catch {
+    return DEFAULT_ABOUT;
+  }
+}
+
+export async function setAbout(kv: KVNamespace, about: About): Promise<void> {
+  await kv.put('about', JSON.stringify(about));
+}
+
+export const DEFAULT_CONTACT: Contact = {
+  bigCall: 'Construyamos algo <span class="sea">bueno</span> <span class="brass">juntos</span>.',
+  githubUrl: 'https://github.com/Sbas0611',
+  githubLabel: 'github.com/Sbas0611',
+  linkedinUrl: 'https://www.linkedin.com/in/sebastián-arboleda',
+  linkedinLabel: 'in/sebastián-arboleda',
+  email: 'dev.arboleda@gmail.com',
+  phone: '+57 321 808 8339',
+  footerLeft: '© 2026 SBAS.DEV &nbsp;·&nbsp; MADE IN MEDELLÍN',
+  footerRight: 'BUILT WITH ⚓ + ⚙ + PIXELS',
+};
+
+export async function getContact(kv: KVNamespace | undefined): Promise<Contact> {
+  if (!kv) return DEFAULT_CONTACT;
+  try {
+    const data = await kv.get('contact', 'json') as Contact | null;
+    return data ?? DEFAULT_CONTACT;
+  } catch {
+    return DEFAULT_CONTACT;
+  }
+}
+
+export async function setContact(kv: KVNamespace, contact: Contact): Promise<void> {
+  await kv.put('contact', JSON.stringify(contact));
 }

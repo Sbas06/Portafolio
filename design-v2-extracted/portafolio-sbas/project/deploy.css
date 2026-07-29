@@ -1,0 +1,113 @@
+/* =====================================================================
+   DEPLOY SHELL — turns the mockup pieces into a real single-page site.
+   Loaded AFTER portfolio.css. Only additive classes; reuses all tokens.
+   ===================================================================== */
+
+/* ---- page rhythm ---- */
+.site { position: relative; z-index: 1; }
+html { scroll-behavior: smooth; }
+
+/* ---- fixed top nav ---- */
+.topnav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 9000;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 28px;
+  background: color-mix(in srgb, var(--panel) 88%, transparent);
+  backdrop-filter: blur(6px);
+  border-bottom: 3px solid var(--line-strong);
+  box-shadow: 0 3px 0 0 rgba(22,56,66,0.08);
+}
+.topnav .brand { display: flex; align-items: center; gap: 12px; font-family: 'Press Start 2P'; font-size: 12px; color: var(--ink); text-decoration: none; letter-spacing: 0.04em; }
+.topnav .brand .cog { width: 18px; height: 18px; background: var(--brass); flex-shrink: 0;
+  -webkit-mask: repeating-conic-gradient(from 0deg, #000 0 15deg, transparent 15deg 26deg); mask: repeating-conic-gradient(from 0deg, #000 0 15deg, transparent 15deg 26deg); }
+@media (prefers-reduced-motion: no-preference) { .topnav .brand:hover .cog { animation: spin 3s linear infinite; } }
+.topnav .brand b { color: var(--sea-deep); }
+
+.topnav nav { display: flex; align-items: center; gap: 6px; }
+.topnav nav a {
+  font-family: 'Press Start 2P'; font-size: 8px; letter-spacing: 0.06em;
+  color: var(--ink-soft); text-decoration: none; padding: 10px 12px;
+  display: inline-flex; align-items: baseline; gap: 7px; position: relative;
+  border: 2px solid transparent; transition: color .15s, border-color .15s, background .15s;
+}
+.topnav nav a .n { color: var(--brass); font-size: 7px; }
+.topnav nav a:hover { color: var(--ink); background: var(--panel-2); }
+.topnav nav a.active { color: var(--sea-deep); border-color: var(--sea); background: var(--panel-2); }
+.topnav nav a.active .n { color: var(--sea); }
+.topnav .navcta { font-family: 'Press Start 2P'; font-size: 8px; }
+
+.nav-toggle { display: none; }
+
+/* ---- section scaffolding ---- */
+.screen { scroll-margin-top: 84px; padding: 96px 0 36px; }
+.screen:first-of-type { padding-top: 110px; }
+.shell { max-width: 1180px; margin: 0 auto; padding: 0 28px; }
+
+.sec-intro { display: flex; align-items: baseline; gap: 16px; margin-bottom: 26px; flex-wrap: wrap; }
+.sec-intro .eyebrow { font-family: 'Press Start 2P'; font-size: 9px; color: var(--brass); letter-spacing: 0.12em; }
+.sec-intro .eyebrow .n { color: var(--sea); }
+.sec-intro h2 { font-family: 'Press Start 2P'; font-size: 17px; color: var(--ink); margin: 0; }
+.sec-intro .lead { font-family: 'VT323'; font-size: 21px; color: var(--ink-soft); margin: 0 0 0 auto; }
+
+/* ---- HERO (deploy) ---- */
+.hero-screen { position: relative; min-height: calc(100vh - 40px); display: flex; flex-direction: column; justify-content: center; padding-top: 96px; }
+/* giant year mark behind hero */
+.year-mark {
+  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+  font-family: 'Press Start 2P'; font-size: 168px; line-height: 0.8; letter-spacing: -0.04em;
+  color: transparent; -webkit-text-stroke: 3px var(--foam); opacity: 0.5;
+  pointer-events: none; z-index: 0; user-select: none; text-align: right;
+}
+.year-mark span { display: block; }
+.hero-screen .hero { position: relative; z-index: 1; }
+.scroll-cue { display: flex; align-items: center; gap: 12px; margin-top: 30px; font-family: 'Press Start 2P'; font-size: 8px; color: var(--ink-mute); letter-spacing: 0.14em; }
+.scroll-cue .mouse { width: 18px; height: 28px; border: 2px solid var(--ink-mute); border-radius: 10px; position: relative; }
+.scroll-cue .mouse::after { content: ''; position: absolute; left: 50%; top: 5px; width: 3px; height: 6px; background: var(--sea); transform: translateX(-50%); }
+@media (prefers-reduced-motion: no-preference) { .scroll-cue .mouse::after { animation: wheel 1.4s ease-in-out infinite; } }
+@keyframes wheel { 0%,100% { top: 5px; opacity: 1; } 60% { top: 14px; opacity: 0.3; } }
+
+/* ---- ABOUT ---- */
+.about-grid { display: grid; grid-template-columns: 320px 1fr; gap: 32px; align-items: stretch; }
+.about-portrait {
+  background: var(--panel); border: 0; position: relative;
+  box-shadow: 0 0 0 3px var(--bg-sky), 0 0 0 6px var(--line-strong), 6px 6px 0 6px rgba(22,56,66,0.12);
+  display: flex; align-items: center; justify-content: center; padding: 22px;
+}
+.about-portrait .frame { width: 100%; aspect-ratio: 4/5; background:
+    repeating-linear-gradient(45deg, var(--panel-2) 0 12px, var(--panel-sand) 12px 24px);
+  border: 3px solid var(--line-strong); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+.about-portrait .frame .ph { font-family: 'Press Start 2P'; font-size: 8px; color: var(--ink-mute); text-align: center; line-height: 1.8; border: 2px dashed var(--sea); padding: 12px 14px; background: var(--panel); }
+.about-portrait .yrs { position: absolute; right: -10px; bottom: -10px; background: var(--brass); color: #fff; font-family: 'Press Start 2P'; font-size: 9px; padding: 12px 14px; text-align: center; box-shadow: 4px 4px 0 var(--brass-dark); line-height: 1.6; }
+.about-portrait .yrs b { font-size: 18px; display: block; }
+.about-card {
+  background: var(--panel); padding: 34px 36px; position: relative;
+  box-shadow: 0 0 0 3px var(--bg-sky), 0 0 0 6px var(--line-strong), 6px 6px 0 6px rgba(22,56,66,0.12);
+  display: flex; flex-direction: column;
+}
+.about-card .hi { font-family: 'Press Start 2P'; font-size: 15px; color: var(--ink); line-height: 1.6; margin: 0 0 20px; }
+.about-card .hi .sea { color: var(--sea-deep); }
+.about-card p { font-family: 'VT323'; font-size: 21px; color: var(--ink-soft); line-height: 1.55; margin: 0 0 16px; max-width: 60ch; }
+.about-card .skills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 22px; }
+.about-card .skills .chip { cursor: default; }
+
+/* ---- CONTACT headline ---- */
+.contact-screen .big-call { font-family: 'Press Start 2P'; font-size: 30px; line-height: 1.4; color: var(--ink); margin: 0 0 28px; max-width: 18ch; }
+.contact-screen .big-call .sea { color: var(--sea-deep); }
+.contact-screen .big-call .brass { color: var(--brass); }
+
+/* ---- site footer line ---- */
+.site-foot { text-align: center; padding: 30px 28px 50px; font-family: 'Press Start 2P'; font-size: 8px; color: var(--ink-mute); letter-spacing: 0.1em; }
+.site-foot b { color: var(--brass-dark); }
+
+/* ---- responsive ---- */
+@media (max-width: 880px) {
+  .topnav { padding: 10px 16px; }
+  .topnav nav { display: none; position: fixed; top: 56px; left: 0; right: 0; flex-direction: column; gap: 0; background: var(--panel); border-bottom: 3px solid var(--line-strong); padding: 8px; }
+  .topnav nav.open { display: flex; }
+  .topnav nav a { width: 100%; }
+  .nav-toggle { display: inline-flex; font-family: 'Press Start 2P'; font-size: 10px; background: var(--panel-2); border: 2px solid var(--line); color: var(--ink); padding: 10px 12px; cursor: pointer; }
+  .year-mark { font-size: 96px; opacity: 0.32; }
+  .about-grid { grid-template-columns: 1fr; }
+  .about-portrait { max-width: 320px; }
+  .contact-screen .big-call { font-size: 22px; }
+}

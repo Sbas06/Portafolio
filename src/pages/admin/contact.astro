@@ -1,0 +1,149 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { getContact, setContact, DEFAULT_CONTACT } from '../../lib/kv';
+import type { Contact } from '../../lib/types';
+
+const kv = Astro.locals.runtime?.env?.PORTFOLIO_KV;
+
+let success = false;
+let error = '';
+
+if (Astro.request.method === 'POST') {
+  try {
+    const fd = await Astro.request.formData();
+    const updated: Contact = {
+      bigCall:       (fd.get('bigCall')       as string || '').trim(),
+      githubUrl:     (fd.get('githubUrl')     as string || '').trim(),
+      githubLabel:   (fd.get('githubLabel')   as string || '').trim(),
+      linkedinUrl:   (fd.get('linkedinUrl')   as string || '').trim(),
+      linkedinLabel: (fd.get('linkedinLabel') as string || '').trim(),
+      email:         (fd.get('email')         as string || '').trim(),
+      phone:         (fd.get('phone')         as string || '').trim(),
+      footerLeft:    (fd.get('footerLeft')    as string || '').trim(),
+      footerRight:   (fd.get('footerRight')   as string || '').trim(),
+    };
+    if (kv) {
+      await setContact(kv, updated);
+    }
+    success = true;
+  } catch (e) {
+    error = String(e);
+  }
+}
+
+const contact = await getContact(kv);
+---
+<AdminLayout title="Contacto" section="CONTACTO">
+  <div class="adm-page-head">
+    <h1>CONTACTO</h1>
+    <div style="font-family:'VT323';font-size:17px;color:var(--ink-mute);">
+      ⚓ editar sección Drop Anchor
+    </div>
+  </div>
+
+  {success && (
+    <div class="adm-alert ok">✔ Guardado correctamente.</div>
+  )}
+  {error && (
+    <div class="adm-alert err">✘ Error: {error}</div>
+  )}
+
+  <form method="POST" class="adm-form">
+
+    <div class="adm-form-section">TITULAR PRINCIPAL</div>
+    <label class="adm-label">
+      Frase "big-call" (acepta HTML — use &lt;span class="sea"&gt; y &lt;span class="brass"&gt;)
+      <textarea name="bigCall" class="adm-input" rows="3">{contact.bigCall}</textarea>
+    </label>
+
+    <div class="adm-form-section">ENLACES SOCIALES</div>
+
+    <div class="contact-row">
+      <label class="adm-label">
+        GitHub — URL
+        <input type="url" name="githubUrl" class="adm-input" value={contact.githubUrl} />
+      </label>
+      <label class="adm-label">
+        GitHub — Etiqueta visible
+        <input type="text" name="githubLabel" class="adm-input" value={contact.githubLabel} />
+      </label>
+    </div>
+
+    <div class="contact-row">
+      <label class="adm-label">
+        LinkedIn — URL
+        <input type="url" name="linkedinUrl" class="adm-input" value={contact.linkedinUrl} />
+      </label>
+      <label class="adm-label">
+        LinkedIn — Etiqueta visible
+        <input type="text" name="linkedinLabel" class="adm-input" value={contact.linkedinLabel} />
+      </label>
+    </div>
+
+    <div class="adm-form-section">DATOS DE CONTACTO</div>
+
+    <label class="adm-label">
+      Email
+      <input type="email" name="email" class="adm-input" value={contact.email} />
+    </label>
+
+    <label class="adm-label">
+      Teléfono (ej: +57 321 808 8339)
+      <input type="text" name="phone" class="adm-input" value={contact.phone} maxlength="30" />
+    </label>
+
+    <div class="adm-form-section">PIE DE PÁGINA</div>
+
+    <label class="adm-label">
+      Footer — columna izquierda (acepta HTML básico)
+      <input type="text" name="footerLeft" class="adm-input" value={contact.footerLeft} />
+    </label>
+
+    <label class="adm-label">
+      Footer — columna derecha
+      <input type="text" name="footerRight" class="adm-input" value={contact.footerRight} />
+    </label>
+
+    <div style="display:flex;gap:14px;margin-top:28px;flex-wrap:wrap;">
+      <button type="submit" class="adm-btn">GUARDAR CAMBIOS</button>
+      <a href="/" target="_blank" class="adm-btn ghost">VER PORTFOLIO ↗</a>
+      <button type="button" class="adm-btn ghost" id="reset-btn">RESTAURAR DEFAULTS</button>
+    </div>
+  </form>
+</AdminLayout>
+
+<script define:vars={{ DEFAULT_CONTACT }}>
+  document.getElementById('reset-btn').addEventListener('click', function () {
+    if (!confirm('¿Restaurar todos los valores por defecto?')) return;
+    const form = this.closest('form');
+    Object.entries(DEFAULT_CONTACT).forEach(function([key, val]) {
+      const el = form.elements[key];
+      if (el) el.value = val;
+    });
+  });
+</script>
+
+<style>
+  .contact-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 4px;
+  }
+  @media (max-width: 700px) {
+    .contact-row { grid-template-columns: 1fr; }
+  }
+  .adm-alert {
+    padding: 14px 18px; margin-bottom: 20px;
+    font-family: 'Press Start 2P', monospace; font-size: 9px; letter-spacing: 0.06em;
+  }
+  .adm-alert.ok  { background: #e8f6f0; border: 2px solid var(--led); color: #2a6e50; }
+  .adm-alert.err { background: #fdf0ef; border: 2px solid var(--coral); color: #a03030; }
+  .adm-form-section {
+    font-family: 'Press Start 2P', monospace; font-size: 9px;
+    color: var(--brass-dark); letter-spacing: 0.1em;
+    padding: 12px 0 10px; border-bottom: 2px solid var(--line);
+    margin: 20px 0 16px;
+  }
+  .adm-form-section:first-of-type { margin-top: 0; }
+</style>

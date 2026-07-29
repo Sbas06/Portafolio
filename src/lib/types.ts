@@ -17,6 +17,14 @@ export interface Project {
   emblemStyle?: string;
 }
 
+export interface About {
+  hi: string;
+  bio1: string;
+  bio2: string;
+  years: string;
+  skills: [string, string][];
+}
+
 export interface ExperienceEntry {
   id: string;
   lvl: string;
@@ -26,4 +34,16 @@ export interface ExperienceEntry {
   dates: string;
   status: 'active' | 'done' | 'archive';
   order: number;
+}
+
+export interface Contact {
+  bigCall: string;
+  githubUrl: string;
+  githubLabel: string;
+  linkedinUrl: string;
+  linkedinLabel: string;
+  email: string;
+  phone: string;
+  footerLeft: string;
+  footerRight: string;
 }

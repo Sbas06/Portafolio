@@ -1,0 +1,178 @@
+/* =====================================================================
+   PORTAFOLIO SBAS — DEPLOYED SITE LAYOUT
+   Layered on top of portfolio.css (tokens, seascape, chrome, buttons,
+   manifest cards, project sheet, porthole/avatar, log rows are reused).
+   This file adds: fixed nav, full-height hero, section rhythm, about,
+   contact — the "as deployed" single-page experience.
+   ===================================================================== */
+
+/* deployed pages scroll the whole viewport; let sections breathe */
+body { overflow-x: hidden; }
+
+/* ---------------------------------------------------------------------
+   FIXED TOP NAV
+   --------------------------------------------------------------------- */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 20px; padding: 14px 28px;
+  background: color-mix(in srgb, var(--panel) 86%, transparent);
+  backdrop-filter: blur(8px) saturate(1.1);
+  -webkit-backdrop-filter: blur(8px) saturate(1.1);
+  border-bottom: 3px solid var(--line-strong);
+  box-shadow: 0 3px 0 0 rgba(22,56,66,0.10);
+}
+.nav .brand { display: flex; align-items: center; gap: 12px; }
+.nav .brand .mark {
+  width: 26px; height: 26px; flex-shrink: 0; background: var(--sea);
+  box-shadow: 0 0 0 3px var(--brass), inset 0 0 0 2px rgba(255,255,255,0.3);
+  position: relative;
+}
+.nav .brand .mark::after { content: ''; position: absolute; inset: 7px; background: var(--panel); }
+.nav .brand .txt { line-height: 1.2; white-space: nowrap; }
+.nav .brand .txt b { font-family: 'Press Start 2P'; font-size: 10px; color: var(--ink); display: block; letter-spacing: 0.04em; }
+.nav .brand .txt span { font-family: 'VT323'; font-size: 15px; color: var(--ink-soft); }
+
+.nav .menu { display: flex; align-items: center; gap: 6px; }
+.nav .menu a {
+  font-family: 'Press Start 2P'; font-size: 8px; letter-spacing: 0.04em;
+  color: var(--ink-soft); text-decoration: none; padding: 10px 12px; position: relative;
+  display: flex; align-items: baseline; gap: 6px; transition: color .15s;
+}
+.nav .menu a .n { color: var(--brass); font-size: 7px; }
+.nav .menu a::after { content: ''; position: absolute; left: 12px; right: 12px; bottom: 5px; height: 2px; background: var(--sea); transform: scaleX(0); transform-origin: left; transition: transform .2s; }
+.nav .menu a:hover { color: var(--ink); }
+.nav .menu a:hover::after, .nav .menu a.active::after { transform: scaleX(1); }
+.nav .menu a.active { color: var(--sea-deep); }
+
+.nav .meta { display: flex; align-items: center; gap: 10px; }
+.nav .lang { display: flex; gap: 2px; font-family: 'Press Start 2P'; font-size: 8px; border: 2px solid var(--line); }
+.nav .lang button { font: inherit; background: transparent; border: 0; color: var(--ink-mute); padding: 8px 9px; cursor: pointer; }
+.nav .lang button.on { background: var(--sea); color: #fff; }
+
+.nav .burger { display: none; width: 38px; height: 34px; background: var(--panel-2); border: 2px solid var(--line); cursor: pointer; padding: 0; position: relative; }
+.nav .burger i, .nav .burger::before, .nav .burger::after { content: ''; position: absolute; left: 8px; right: 8px; height: 3px; background: var(--ink); }
+.nav .burger::before { top: 9px; } .nav .burger i { top: 15px; } .nav .burger::after { top: 21px; }
+
+/* ---------------------------------------------------------------------
+   PAGE CONTAINER
+   --------------------------------------------------------------------- */
+.site { position: relative; z-index: 1; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 32px; }
+.sec { padding: 96px 0; position: relative; }
+.sec-eyebrow { font-family: 'Press Start 2P'; font-size: 9px; color: var(--brass); letter-spacing: 0.12em; margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+.sec-eyebrow::before { content: ''; width: 26px; height: 3px; background: var(--brass); }
+.sec-title { font-family: 'Press Start 2P'; font-size: 22px; color: var(--ink); margin: 0 0 10px; line-height: 1.35; }
+.sec-lead { font-family: 'VT323'; font-size: 22px; color: var(--ink-soft); margin: 0 0 44px; max-width: 56ch; }
+
+/* ---------------------------------------------------------------------
+   HERO — full viewport
+   --------------------------------------------------------------------- */
+.hero-full {
+  min-height: 100vh; display: flex; align-items: center;
+  padding: 120px 0 80px; position: relative;
+}
+.hero-full .wrap { width: 100%; }
+.hero-grid { display: grid; grid-template-columns: 1.4fr 0.9fr; gap: 56px; align-items: center; }
+.hero-kicker { font-family: 'Press Start 2P'; font-size: 10px; letter-spacing: 0.4em; color: var(--sea); margin-bottom: 22px; display: flex; align-items: center; gap: 12px; }
+.hero-kicker::before { content: '⚓'; color: var(--brass); }
+.hero-name { font-family: 'Press Start 2P'; font-size: clamp(30px, 6vw, 60px); line-height: 1.12; color: var(--ink); margin: 0 0 24px; text-shadow: 5px 5px 0 var(--foam); }
+.hero-role { font-family: 'VT323'; font-size: clamp(24px, 3vw, 34px); color: var(--ink-soft); margin: 0 0 12px; }
+.hero-role b { color: var(--sea-deep); }
+.hero-sub { font-family: 'VT323'; font-size: 21px; color: var(--brass-dark); margin: 0 0 36px; display: flex; align-items: center; gap: 10px; }
+.hero-cta { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+
+.hero-aside { display: flex; flex-direction: column; align-items: center; gap: 22px; }
+.hero-aside .yearmark { display: flex; gap: 8px; align-items: center; font-family: 'Press Start 2P'; font-size: 13px; color: var(--brass); }
+.hero-aside .yearmark span { background: var(--panel); border: 2px solid var(--line); padding: 8px 10px; box-shadow: 3px 3px 0 rgba(22,56,66,0.12); color: var(--ink); }
+
+/* scroll cue */
+.scrollcue { position: absolute; left: 50%; bottom: 28px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; font-family: 'Press Start 2P'; font-size: 7px; letter-spacing: 0.2em; color: var(--ink-mute); }
+.scrollcue .mouse { width: 18px; height: 28px; border: 2px solid var(--ink-mute); border-radius: 9px; position: relative; }
+.scrollcue .mouse::after { content: ''; position: absolute; left: 50%; top: 5px; width: 3px; height: 6px; background: var(--sea); transform: translateX(-50%); animation: cue 1.4s ease-in-out infinite; }
+@keyframes cue { 0%,100% { opacity: 0; transform: translate(-50%,0); } 50% { opacity: 1; transform: translate(-50%,8px); } }
+
+/* hero stat ribbon */
+.hero-stats { display: flex; gap: 30px; margin-top: 38px; flex-wrap: wrap; }
+.hero-stats .st { font-family: 'Press Start 2P'; font-size: 8px; color: var(--ink-mute); }
+.hero-stats .st b { display: block; font-size: 19px; color: var(--sea-deep); margin-bottom: 6px; }
+
+/* ---------------------------------------------------------------------
+   WORK — category bar + panel grid (reuses .cargo / .manifest)
+   --------------------------------------------------------------------- */
+.cat-bar { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 30px; }
+.cat-bar button { font-family: 'Press Start 2P'; font-size: 8px; color: var(--ink-soft); background: var(--panel); border: 2px solid var(--line); padding: 11px 14px; cursor: pointer; display: flex; align-items: center; gap: 9px; transition: all .14s; }
+.cat-bar button .ct { background: var(--panel-2); color: var(--brass-dark); padding: 3px 6px; font-size: 7px; }
+.cat-bar button:hover { border-color: var(--sea); transform: translateY(-2px); }
+.cat-bar button.on { background: var(--sea); color: #fff; border-color: var(--sea); }
+.cat-bar button.on .ct { background: rgba(255,255,255,0.25); color: #fff; }
+
+/* hide cards not in active category */
+.manifest.hide { display: none; }
+
+/* ---------------------------------------------------------------------
+   ABOUT — portrait porthole + bio
+   --------------------------------------------------------------------- */
+.about-grid { display: grid; grid-template-columns: 0.85fr 1.15fr; gap: 52px; align-items: center; }
+.about-portrait { display: flex; justify-content: center; }
+.about-portrait .porthole { width: 280px; height: 280px; }
+.about-bio p { font-family: 'VT323'; font-size: 22px; color: var(--ink-soft); line-height: 1.55; margin: 0 0 18px; }
+.about-bio p .hi { color: var(--sea-deep); font-weight: normal; background: linear-gradient(transparent 62%, var(--foam) 62%); padding: 0 2px; }
+.about-bio .lead-line { font-family: 'Press Start 2P'; font-size: 13px; color: var(--ink); line-height: 1.6; margin: 0 0 24px; }
+.about-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 26px; }
+
+/* about quick stats */
+.about-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 34px; }
+.about-stats .box { background: var(--panel); border: 2px solid var(--line); padding: 18px 14px; box-shadow: 4px 4px 0 rgba(22,56,66,0.08); }
+.about-stats .box b { font-family: 'Press Start 2P'; font-size: 18px; color: var(--sea-deep); display: block; margin-bottom: 8px; }
+.about-stats .box span { font-family: 'VT323'; font-size: 16px; color: var(--ink-mute); }
+
+/* ---------------------------------------------------------------------
+   CONTACT — big call
+   --------------------------------------------------------------------- */
+.contact { text-align: center; }
+.contact .big { font-family: 'Press Start 2P'; font-size: clamp(22px, 4.6vw, 44px); line-height: 1.25; color: var(--ink); margin: 0 0 30px; text-shadow: 4px 4px 0 var(--foam); }
+.contact .big a { color: var(--sea-deep); text-decoration: none; }
+.contact .big a:hover { color: var(--coral); }
+.contact .mailbtn { display: inline-flex; align-items: center; gap: 12px; font-family: 'VT323'; font-size: 26px; color: var(--ink); background: var(--panel); border: 3px solid var(--line-strong); padding: 14px 26px; text-decoration: none; box-shadow: 6px 6px 0 rgba(22,56,66,0.14); transition: transform .12s, box-shadow .12s; margin-bottom: 40px; }
+.contact .mailbtn:hover { transform: translateY(-3px); box-shadow: 8px 10px 0 var(--brass); }
+.contact .mailbtn .led-dot { width: 11px; height: 11px; }
+.contact .socials { display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; }
+.contact .socials a { font-family: 'Press Start 2P'; font-size: 9px; color: var(--ink); text-decoration: none; background: var(--panel-2); border: 2px solid var(--line); padding: 14px 18px; display: flex; align-items: center; gap: 10px; transition: all .14s; }
+.contact .socials a .dot { width: 10px; height: 10px; background: var(--sea); }
+.contact .socials a.gh .dot { background: var(--ink); } .contact .socials a.li .dot { background: var(--sea-deep); }
+.contact .socials a.be .dot { background: var(--brass); } .contact .socials a.ml .dot { background: var(--coral); }
+.contact .socials a:hover { border-color: var(--sea); transform: translateY(-3px); color: var(--sea-deep); }
+
+/* footer */
+.site-footer { border-top: 3px solid var(--line-strong); background: color-mix(in srgb, var(--panel) 90%, transparent); }
+.site-footer .wrap { display: flex; align-items: center; justify-content: space-between; padding-top: 22px; padding-bottom: 22px; flex-wrap: wrap; gap: 12px; font-family: 'Press Start 2P'; font-size: 8px; color: var(--ink-mute); letter-spacing: 0.06em; }
+.site-footer b { color: var(--brass-dark); }
+
+/* ---------------------------------------------------------------------
+   SECTION DIVIDER — little brass gear chain between sections
+   --------------------------------------------------------------------- */
+.divider { display: flex; align-items: center; justify-content: center; gap: 0; padding: 0; opacity: 0.7; }
+.divider .ln { height: 2px; width: 80px; background: var(--brass); opacity: 0.5; }
+.divider .gr { width: 18px; height: 18px; margin: 0 4px; background: var(--brass); -webkit-mask: repeating-conic-gradient(from 0deg, #000 0 16deg, transparent 16deg 28deg); mask: repeating-conic-gradient(from 0deg, #000 0 16deg, transparent 16deg 28deg); }
+
+/* ---------------------------------------------------------------------
+   RESPONSIVE
+   --------------------------------------------------------------------- */
+@media (max-width: 920px) {
+  .nav .menu { position: fixed; inset: 64px 0 auto 0; flex-direction: column; align-items: stretch; gap: 0; background: var(--panel); border-bottom: 3px solid var(--line-strong); padding: 8px 16px 16px; transform: translateY(-130%); transition: transform .3s; }
+  .nav .menu.open { transform: translateY(0); }
+  .nav .menu a { font-size: 9px; padding: 14px 8px; border-bottom: 1px solid var(--line); }
+  .nav .menu a::after { display: none; }
+  .nav .burger { display: block; }
+  .hero-grid { grid-template-columns: 1fr; gap: 36px; }
+  .hero-aside { order: -1; }
+  .about-grid { grid-template-columns: 1fr; gap: 34px; }
+  .about-portrait { order: -1; }
+  .about-stats { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px) {
+  .nav .lang { display: none; }
+  .sec { padding: 70px 0; }
+  .about-stats { grid-template-columns: repeat(2, 1fr); }
+}

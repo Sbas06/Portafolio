@@ -1,0 +1,1175 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Portafolio Sbas — Pixel Art Design</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* —— Paleta · CIRCUIT LAB —— (morado calmado, base de PCB teal-carbón) */
+    --bg-abyss:        #0A1014;  /* placa base / fondo principal */
+    --bg-deep:         #0F1A20;  /* fondo de paneles */
+    --bg-surface:      #15252C;  /* superficies elevadas */
+    --bg-line:         #213842;  /* borde inactivo / traza apagada */
+
+    --purple-neon:     #7E6BD6;  /* acento principal — morado calmado */
+    --purple-glow:     #9C8CE0;  /* hover / highlight */
+    --lilac-soft:      #C2B8E6;  /* texto secundario */
+
+    --txt-primary:     #E8F1EF;  /* silkscreen / texto principal */
+    --txt-muted:       #6F8A8A;  /* texto apagado teal */
+
+    --cyan-arcade:     #34D1BE;  /* CTA primario — solder/LED teal */
+    --yellow-arcade:   #D9A441;  /* alerta — cobre / traza */
+    --magenta-1up:     #D96A8E;  /* combo / live — rosa apagado */
+    --green-life:      #5FBF87;  /* status online — LED verde */
+    --red-gameover:    #D9596B;  /* error / game over */
+
+    --copper:          #C58A3D;  /* trazas de cobre */
+    --trace:           rgba(52,209,190,0.10); /* trazas tenues de PCB */
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg-abyss); color: var(--txt-primary); }
+  body {
+    font-family: 'VT323', monospace;
+    font-size: 20px;
+    line-height: 1.35;
+    image-rendering: pixelated;
+    /* —— Patrón de PCB: trazas de cobre + pads de soldadura —— */
+    background-image:
+      radial-gradient(circle, rgba(197,138,61,0.16) 1.4px, transparent 2px),       /* pads de soldadura */
+      linear-gradient(var(--trace) 1px, transparent 1px),                           /* trazas horizontales */
+      linear-gradient(90deg, var(--trace) 1px, transparent 1px),                    /* trazas verticales */
+      radial-gradient(ellipse at 78% 8%, rgba(126,107,214,0.10), transparent 55%),   /* brillo morado tenue */
+      radial-gradient(ellipse at 12% 92%, rgba(52,209,190,0.06), transparent 50%);   /* brillo teal tenue */
+    background-size: 48px 48px, 48px 48px, 48px 48px, 100% 100%, 100% 100%;
+  }
+  h1, h2, h3, h4, .px {
+    font-family: 'Press Start 2P', monospace;
+    font-weight: normal;
+    letter-spacing: 0.02em;
+  }
+
+  /* ============== LAYOUT ============== */
+  .doc { max-width: 1280px; margin: 0 auto; padding: 56px 40px 120px; }
+
+  .doc-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; border-bottom: 2px solid var(--bg-line); padding-bottom: 24px; margin-bottom: 56px; }
+  .doc-header .crumb { font-family: 'Press Start 2P'; font-size: 10px; color: var(--purple-glow); }
+  .doc-header h1 { font-size: 22px; margin: 12px 0 4px; color: var(--txt-primary); }
+  .doc-header .sub { font-family: 'VT323'; font-size: 22px; color: var(--lilac-soft); }
+  .doc-header .meta { text-align: right; font-family: 'VT323'; font-size: 18px; color: var(--txt-muted); }
+  .doc-header .meta b { color: var(--cyan-arcade); font-family: 'Press Start 2P'; font-size: 10px; letter-spacing: 0.1em; }
+
+  section.block { margin-bottom: 88px; }
+  .block-head { display: flex; align-items: baseline; gap: 16px; margin-bottom: 28px; }
+  .block-head .num { font-family: 'Press Start 2P'; font-size: 11px; color: var(--purple-neon); }
+  .block-head h2 { font-size: 16px; color: var(--txt-primary); margin: 0; }
+  .block-head .tag { margin-left: auto; font-family: 'Press Start 2P'; font-size: 9px; color: var(--txt-muted); border: 1px solid var(--bg-line); padding: 6px 8px; }
+
+  /* ============== PIXEL CHROME ============== */
+  /* Pixel-perfect border via layered box-shadow (no border-radius — strictly orthogonal) */
+  .pixel-frame {
+    position: relative;
+    background: var(--bg-deep);
+    padding: 24px;
+    box-shadow:
+      0 0 0 4px var(--bg-abyss),
+      0 0 0 8px var(--purple-neon),
+      0 0 0 12px var(--bg-abyss),
+      0 0 0 14px var(--bg-line);
+  }
+  .pixel-frame.cyan { box-shadow: 0 0 0 4px var(--bg-abyss), 0 0 0 8px var(--cyan-arcade), 0 0 0 12px var(--bg-abyss), 0 0 0 14px var(--bg-line); }
+  .pixel-frame.yellow { box-shadow: 0 0 0 4px var(--bg-abyss), 0 0 0 8px var(--yellow-arcade), 0 0 0 12px var(--bg-abyss), 0 0 0 14px var(--bg-line); }
+
+  /* corner notches — gives the 8-bit dialog box look */
+  .pixel-frame::before, .pixel-frame::after,
+  .pixel-frame > .nw, .pixel-frame > .ne, .pixel-frame > .sw, .pixel-frame > .se {
+    content: ''; position: absolute; width: 8px; height: 8px; background: var(--bg-abyss);
+    z-index: 2;
+  }
+  .pixel-frame::before { top: -4px; left: -4px; }
+  .pixel-frame::after  { top: -4px; right: -4px; }
+  .pixel-frame > .sw   { bottom: -4px; left: -4px; }
+  .pixel-frame > .se   { bottom: -4px; right: -4px; }
+
+  /* ============== DESIGN SYSTEM ============== */
+  .ds-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 32px; }
+  .ds-card { background: var(--bg-deep); padding: 24px; border: 2px solid var(--bg-line); }
+  .ds-card h3 { font-size: 11px; color: var(--purple-glow); margin: 0 0 18px; }
+  .ds-card h3 span { color: var(--txt-muted); margin-left: 8px; font-size: 9px; }
+
+  .swatch-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .swatch { display: flex; flex-direction: column; gap: 8px; }
+  .swatch .chip {
+    height: 78px;
+    background: var(--c);
+    box-shadow: inset 0 0 0 2px rgba(255,255,255,0.06), 0 0 0 2px var(--bg-line);
+    position: relative;
+  }
+  /* 8-bit dither overlay on chip */
+  .swatch .chip::after {
+    content: ''; position: absolute; right: 6px; bottom: 6px; width: 16px; height: 16px;
+    background-image:
+      linear-gradient(45deg, rgba(255,255,255,0.18) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.18) 75%),
+      linear-gradient(45deg, rgba(255,255,255,0.18) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.18) 75%);
+    background-size: 4px 4px;
+    background-position: 0 0, 2px 2px;
+  }
+  .swatch .name { font-family: 'Press Start 2P'; font-size: 8px; color: var(--txt-primary); letter-spacing: 0.04em; }
+  .swatch .hex  { font-family: 'VT323'; font-size: 18px; color: var(--txt-muted); margin-top: -4px; }
+
+  .swatch-row.accents { grid-template-columns: repeat(4, 1fr); }
+
+  /* typography */
+  .type-row { display: grid; grid-template-columns: 110px 1fr 90px; gap: 16px; align-items: center; padding: 14px 0; border-bottom: 1px dashed var(--bg-line); }
+  .type-row:last-child { border-bottom: 0; }
+  .type-row .label { font-family: 'Press Start 2P'; font-size: 8px; color: var(--purple-glow); letter-spacing: 0.06em; }
+  .type-row .preview { color: var(--txt-primary); }
+  .type-row .preview.h-px { font-family: 'Press Start 2P'; }
+  .type-row .preview.h-vt { font-family: 'VT323'; }
+  .type-row .meta { text-align: right; font-family: 'VT323'; font-size: 16px; color: var(--txt-muted); }
+
+  .preview.title    { font-size: 22px; }
+  .preview.subtitle { font-size: 12px; color: var(--lilac-soft); }
+  .preview.body     { font-size: 22px; color: var(--lilac-soft); }
+  .preview.caption  { font-family: 'Press Start 2P'; font-size: 8px; color: var(--txt-muted); letter-spacing: 0.1em; }
+
+  /* buttons */
+  .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 32px; align-items: start; }
+  .btn-col h4 { font-family: 'Press Start 2P'; font-size: 8px; color: var(--purple-glow); margin: 0 0 12px; letter-spacing: 0.08em; }
+  .btn-col .row { display: flex; gap: 14px; align-items: center; margin-bottom: 10px; }
+  .btn-col .row .lbl { font-family: 'VT323'; font-size: 16px; color: var(--txt-muted); width: 60px; }
+
+  /* base pixel button */
+  .pxbtn {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    padding: 14px 22px;
+    color: var(--bg-abyss);
+    background: var(--cyan-arcade);
+    border: 0;
+    cursor: pointer;
+    position: relative;
+    box-shadow:
+      4px 0 0 0 var(--bg-abyss),
+     -4px 0 0 0 var(--bg-abyss),
+      0 4px 0 0 var(--bg-abyss),
+      0 -4px 0 0 var(--bg-abyss),
+      4px 4px 0 0 #0089a0;        /* drop shadow */
+    text-transform: uppercase;
+  }
+  .pxbtn.hover { background: #6CFFFF; box-shadow:
+      4px 0 0 0 var(--bg-abyss),
+     -4px 0 0 0 var(--bg-abyss),
+      0 4px 0 0 var(--bg-abyss),
+      0 -4px 0 0 var(--bg-abyss),
+      4px 4px 0 0 var(--cyan-arcade),
+      8px 8px 0 0 #008599; }
+  .pxbtn.press { background: var(--cyan-arcade); transform: translate(2px, 2px); box-shadow:
+      4px 0 0 0 var(--bg-abyss),
+     -4px 0 0 0 var(--bg-abyss),
+      0 4px 0 0 var(--bg-abyss),
+      0 -4px 0 0 var(--bg-abyss),
+      2px 2px 0 0 #0089a0; }
+  .pxbtn.disabled { background: #5a4a82; color: #2a1f4d; box-shadow:
+      4px 0 0 0 var(--bg-abyss),
+     -4px 0 0 0 var(--bg-abyss),
+      0 4px 0 0 var(--bg-abyss),
+      0 -4px 0 0 var(--bg-abyss),
+      4px 4px 0 0 #1a0f3a; cursor: not-allowed; }
+
+  .pxbtn.purple { background: var(--purple-neon); color: var(--txt-primary); box-shadow:
+      4px 0 0 0 var(--bg-abyss), -4px 0 0 0 var(--bg-abyss),
+      0 4px 0 0 var(--bg-abyss), 0 -4px 0 0 var(--bg-abyss),
+      4px 4px 0 0 #5a1cb3; }
+  .pxbtn.yellow { background: var(--yellow-arcade); color: var(--bg-abyss); box-shadow:
+      4px 0 0 0 var(--bg-abyss), -4px 0 0 0 var(--bg-abyss),
+      0 4px 0 0 var(--bg-abyss), 0 -4px 0 0 var(--bg-abyss),
+      4px 4px 0 0 #b88a00; }
+  .pxbtn.ghost { background: transparent; color: var(--cyan-arcade);
+    box-shadow:
+      inset 0 0 0 2px var(--cyan-arcade),
+      4px 0 0 0 var(--bg-abyss), -4px 0 0 0 var(--bg-abyss),
+      0 4px 0 0 var(--bg-abyss), 0 -4px 0 0 var(--bg-abyss);
+  }
+  .pxbtn .arrow { display: inline-block; margin-left: 8px; }
+
+  /* ============== HERO ============== */
+  .hero {
+    background: var(--bg-deep);
+    padding: 64px 56px 64px;
+    position: relative;
+    overflow: hidden;
+    box-shadow:
+      0 0 0 4px var(--bg-abyss),
+      0 0 0 8px var(--purple-neon),
+      0 0 0 12px var(--bg-abyss),
+      0 0 0 14px var(--bg-line);
+    background-image:
+      radial-gradient(circle at 80% 30%, rgba(154,77,255,0.18), transparent 50%),
+      radial-gradient(circle at 15% 85%, rgba(0,240,255,0.10), transparent 45%);
+  }
+  .hero .topbar { display: flex; justify-content: space-between; align-items: center; font-family: 'Press Start 2P'; font-size: 9px; color: var(--txt-muted); letter-spacing: 0.12em; margin-bottom: 56px; }
+  .hero .topbar .left { display: flex; gap: 22px; align-items: center; }
+  .hero .topbar .dot { width: 10px; height: 10px; background: var(--green-life); box-shadow: 0 0 0 2px var(--bg-abyss); }
+  .hero .topbar .right { display: flex; gap: 18px; }
+  .hero .topbar .right span.coin { color: var(--yellow-arcade); }
+  .hero .topbar .right span.live { color: var(--magenta-1up); }
+
+  .hero-row { display: grid; grid-template-columns: 1.4fr 1fr; gap: 56px; align-items: center; }
+  .hero .ready { font-family: 'Press Start 2P'; font-size: 11px; color: var(--cyan-arcade); letter-spacing: 0.2em; margin-bottom: 18px; }
+  .hero .ready::before { content: '▶ '; }
+  .hero .name { font-family: 'Press Start 2P'; font-size: 40px; line-height: 1.2; color: var(--txt-primary); margin: 0 0 18px; text-shadow: 4px 4px 0 var(--purple-neon); }
+  .hero .role { font-family: 'VT323'; font-size: 28px; color: var(--lilac-soft); margin-bottom: 32px; max-width: 28ch; }
+  .hero .role .pipe { color: var(--purple-glow); }
+  .hero .stats { display: flex; gap: 28px; margin-bottom: 36px; font-family: 'Press Start 2P'; font-size: 9px; color: var(--txt-muted); }
+  .hero .stats b { display: block; color: var(--cyan-arcade); font-size: 18px; font-family: 'Press Start 2P'; margin-bottom: 6px; }
+  .hero .cta-row { display: flex; gap: 20px; align-items: center; }
+  .hero .blink { font-family: 'Press Start 2P'; font-size: 8px; color: var(--yellow-arcade); animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* —— Player Avatar (puramente pixel art con grid de divs) —— */
+  .avatar-wrap { display: flex; justify-content: center; align-items: center; }
+  .avatar {
+    display: grid;
+    grid-template-columns: repeat(14, 12px);
+    grid-template-rows: repeat(16, 12px);
+    gap: 0;
+    background: transparent;
+  }
+  .avatar i { display: block; }
+  .avatar i.k { background: #1a0a2e; }                         /* outline */
+  .avatar i.h { background: #2c1466; }                         /* hair */
+  .avatar i.s { background: #f1c4a3; }                         /* skin */
+  .avatar i.sd { background: #c89a7e; }                        /* skin shadow */
+  .avatar i.j { background: var(--purple-neon); }              /* jacket */
+  .avatar i.jd { background: #5a1cb3; }                        /* jacket dark */
+  .avatar i.c { background: var(--cyan-arcade); }              /* cyan accent */
+  .avatar i.e { background: #0A0312; }                         /* eyes / detail */
+  .avatar i.w { background: #F4ECFF; }                         /* shirt */
+  .avatar i.x { background: transparent; }
+
+  .hero-floaters { position: absolute; inset: 0; pointer-events: none; }
+  .hero-floaters span {
+    position: absolute;
+    font-family: 'Press Start 2P';
+    font-size: 9px;
+    color: var(--yellow-arcade);
+    text-shadow: 2px 2px 0 var(--bg-abyss);
+  }
+
+  /* ============== EXPERIENCE (Quest log) ============== */
+  .quest {
+    background: var(--bg-deep);
+    padding: 32px;
+    box-shadow:
+      0 0 0 4px var(--bg-abyss),
+      0 0 0 8px var(--purple-neon),
+      0 0 0 12px var(--bg-abyss),
+      0 0 0 14px var(--bg-line);
+  }
+  .quest-head { display: flex; align-items: center; justify-content: space-between; padding-bottom: 18px; border-bottom: 2px solid var(--bg-line); margin-bottom: 18px; }
+  .quest-head h3 { font-family: 'Press Start 2P'; font-size: 14px; color: var(--cyan-arcade); margin: 0; }
+  .quest-head h3::before { content: '★ '; color: var(--yellow-arcade); }
+  .quest-head .filter { display: flex; gap: 8px; }
+  .quest-head .filter span { font-family: 'Press Start 2P'; font-size: 8px; padding: 6px 10px; color: var(--txt-muted); border: 2px solid var(--bg-line); }
+  .quest-head .filter span.on { color: var(--bg-abyss); background: var(--yellow-arcade); border-color: var(--yellow-arcade); }
+
+  .quest-list { display: flex; flex-direction: column; gap: 6px; }
+  .quest-row {
+    display: grid;
+    grid-template-columns: 64px 1.6fr 1fr 100px 110px;
+    align-items: center;
+    gap: 18px;
+    padding: 16px 18px;
+    background: var(--bg-surface);
+    border: 2px solid var(--bg-line);
+  }
+  .quest-row.active { border-color: var(--cyan-arcade); background: rgba(0,240,255,0.06); }
+  .quest-row .lvl { display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; background: var(--purple-neon); color: var(--bg-abyss); font-family: 'Press Start 2P'; font-size: 11px; box-shadow: 4px 4px 0 var(--bg-abyss); }
+  .quest-row.active .lvl { background: var(--cyan-arcade); }
+  .quest-row .role { font-family: 'Press Start 2P'; font-size: 11px; color: var(--txt-primary); }
+  .quest-row .role small { display: block; font-family: 'VT323'; font-size: 18px; color: var(--lilac-soft); margin-top: 6px; letter-spacing: 0; }
+  .quest-row .company { font-family: 'VT323'; font-size: 22px; color: var(--purple-glow); }
+  .quest-row .dates { font-family: 'Press Start 2P'; font-size: 9px; color: var(--txt-muted); letter-spacing: 0.06em; }
+  .quest-row .status { font-family: 'Press Start 2P'; font-size: 8px; padding: 8px; text-align: center; color: var(--bg-abyss); background: var(--green-life); }
+  .quest-row .status.done   { background: var(--bg-line); color: var(--lilac-soft); }
+  .quest-row .status.archive{ background: transparent; color: var(--txt-muted); border: 2px solid var(--bg-line); }
+
+  /* xp bar */
+  .xp { margin-top: 24px; display: flex; align-items: center; gap: 14px; padding: 14px 18px; background: var(--bg-surface); border: 2px solid var(--bg-line); }
+  .xp .lab { font-family: 'Press Start 2P'; font-size: 9px; color: var(--yellow-arcade); }
+  .xp .bar { flex: 1; height: 16px; background: var(--bg-abyss); border: 2px solid var(--bg-line); position: relative; }
+  .xp .bar::after {
+    content: '';
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 82%;
+    background:
+      repeating-linear-gradient(90deg, var(--cyan-arcade) 0 8px, #00b8c4 8px 16px);
+  }
+  .xp .num { font-family: 'Press Start 2P'; font-size: 10px; color: var(--cyan-arcade); }
+
+  /* ============== PROJECTS (Cartridges) ============== */
+  .cart-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+  .cart {
+    background: var(--bg-deep);
+    padding: 0;
+    position: relative;
+    box-shadow: 6px 6px 0 var(--purple-neon), 6px 6px 0 4px var(--bg-line);
+    border: 4px solid var(--bg-line);
+  }
+  /* cartridge ears */
+  .cart::before, .cart::after {
+    content: ''; position: absolute; top: -10px; width: 24px; height: 14px;
+    background: var(--bg-line);
+    border: 4px solid var(--bg-line);
+    border-bottom: none;
+  }
+  .cart::before { left: 24px; }
+  .cart::after  { right: 24px; }
+
+  .cart .label-strip {
+    background: var(--purple-neon);
+    color: var(--bg-abyss);
+    font-family: 'Press Start 2P';
+    font-size: 8px;
+    padding: 10px 14px;
+    letter-spacing: 0.1em;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 4px solid var(--bg-line);
+  }
+  .cart .label-strip .num { background: var(--bg-abyss); color: var(--yellow-arcade); padding: 4px 6px; }
+
+  .cart .screen {
+    height: 140px;
+    background:
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.04) 0 2px, transparent 2px 4px),
+      linear-gradient(135deg, #0C1A1E 0%, #16313A 100%);
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+    border-bottom: 4px solid var(--bg-line);
+  }
+  .cart .screen .placeholder {
+    font-family: 'Press Start 2P'; font-size: 8px; color: var(--txt-muted); letter-spacing: 0.1em;
+    text-align: center;
+    border: 2px dashed var(--purple-glow);
+    padding: 10px 14px;
+  }
+  .cart .screen .pixel-art-sun {
+    position: absolute; inset: 0;
+    background-image:
+      radial-gradient(circle at 30% 60%, var(--yellow-arcade) 6px, transparent 7px),
+      radial-gradient(circle at 70% 40%, var(--magenta-1up) 4px, transparent 5px),
+      radial-gradient(circle at 50% 80%, var(--cyan-arcade) 5px, transparent 6px);
+    opacity: 0.35;
+  }
+
+  .cart .body { padding: 18px 18px 20px; }
+  .cart h4 { font-family: 'Press Start 2P'; font-size: 11px; color: var(--txt-primary); margin: 0 0 10px; line-height: 1.4; }
+  .cart .desc { font-family: 'VT323'; font-size: 18px; color: var(--lilac-soft); margin: 0 0 16px; min-height: 48px; }
+  .cart .tech { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; }
+  .cart .tech .pill {
+    font-family: 'Press Start 2P'; font-size: 7px;
+    padding: 6px 8px;
+    background: var(--bg-surface);
+    border: 2px solid var(--bg-line);
+    color: var(--lilac-soft);
+    letter-spacing: 0.06em;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  /* tiny pixel icon */
+  .tech .pill::before {
+    content: ''; width: 8px; height: 8px;
+    background: var(--c, var(--cyan-arcade));
+    box-shadow:
+      4px 0 0 0 var(--c, var(--cyan-arcade)),
+      0 4px 0 0 var(--c, var(--cyan-arcade)),
+      4px 4px 0 0 var(--bg-abyss);
+  }
+  .pill.t-shop { --c: var(--green-life); }
+  .pill.t-react{ --c: var(--cyan-arcade); }
+  .pill.t-node { --c: var(--green-life); }
+  .pill.t-3d   { --c: var(--magenta-1up); }
+  .pill.t-bc   { --c: var(--yellow-arcade); }
+  .pill.t-wp   { --c: var(--purple-glow); }
+  .pill.t-do   { --c: var(--cyan-arcade); }
+
+  .cart .actions { display: flex; gap: 10px; align-items: center; }
+  .cart .play {
+    flex: 1;
+    font-family: 'Press Start 2P'; font-size: 9px; letter-spacing: 0.08em;
+    padding: 10px; text-align: center;
+    background: var(--cyan-arcade); color: var(--bg-abyss);
+    box-shadow: 4px 4px 0 var(--bg-abyss);
+  }
+  .cart .info {
+    font-family: 'Press Start 2P'; font-size: 9px;
+    padding: 10px 12px;
+    color: var(--lilac-soft);
+    border: 2px solid var(--bg-line);
+    background: transparent;
+  }
+
+  /* ============== FOOTER CONTINUE ============== */
+  .continue {
+    background: var(--bg-deep);
+    padding: 48px;
+    text-align: center;
+    box-shadow:
+      0 0 0 4px var(--bg-abyss),
+      0 0 0 8px var(--yellow-arcade),
+      0 0 0 12px var(--bg-abyss),
+      0 0 0 14px var(--bg-line);
+  }
+  .continue .gameover {
+    font-family: 'Press Start 2P'; font-size: 28px;
+    color: var(--red-gameover);
+    text-shadow: 4px 4px 0 var(--bg-abyss);
+    margin: 0 0 8px;
+    letter-spacing: 0.06em;
+  }
+  .continue .prompt {
+    font-family: 'Press Start 2P'; font-size: 14px;
+    color: var(--yellow-arcade);
+    margin-bottom: 28px;
+    animation: blink 1.2s steps(2) infinite;
+  }
+  .continue .count {
+    font-family: 'Press Start 2P'; font-size: 11px;
+    color: var(--lilac-soft);
+    margin-bottom: 36px;
+  }
+  .continue .count b { color: var(--cyan-arcade); }
+  .continue .links {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    max-width: 720px;
+    margin: 0 auto 32px;
+  }
+  .continue .link {
+    background: var(--bg-surface);
+    border: 2px solid var(--bg-line);
+    padding: 22px 16px;
+    text-align: left;
+    position: relative;
+    box-shadow: 4px 4px 0 var(--bg-abyss);
+  }
+  .continue .link .icn {
+    width: 28px; height: 28px;
+    background: var(--purple-neon);
+    box-shadow:
+      -8px 0 0 0 var(--purple-neon),
+      8px 0 0 0 var(--purple-neon),
+      0 -8px 0 0 var(--purple-neon);
+    margin-bottom: 14px;
+    margin-left: 8px;
+    margin-top: 8px;
+  }
+  .continue .link.gh .icn { background: var(--txt-primary); box-shadow:-8px 0 0 0 var(--txt-primary), 8px 0 0 0 var(--txt-primary), 0 -8px 0 0 var(--txt-primary); }
+  .continue .link.li .icn { background: var(--cyan-arcade); box-shadow:-8px 0 0 0 var(--cyan-arcade), 8px 0 0 0 var(--cyan-arcade), 0 -8px 0 0 var(--cyan-arcade); }
+  .continue .link.ml .icn { background: var(--yellow-arcade); box-shadow:-8px 0 0 0 var(--yellow-arcade), 8px 0 0 0 var(--yellow-arcade), 0 -8px 0 0 var(--yellow-arcade); }
+  .continue .link h5 { font-family: 'Press Start 2P'; font-size: 9px; color: var(--txt-primary); margin: 0 0 6px; letter-spacing: 0.08em; }
+  .continue .link p { font-family: 'VT323'; font-size: 18px; color: var(--lilac-soft); margin: 0; }
+
+  .continue .footer-bar {
+    margin-top: 32px;
+    display: flex; justify-content: space-between; align-items: center;
+    padding-top: 24px; border-top: 2px dashed var(--bg-line);
+    font-family: 'Press Start 2P'; font-size: 8px; color: var(--txt-muted); letter-spacing: 0.1em;
+  }
+  .continue .footer-bar .credits b { color: var(--purple-glow); }
+
+  /* ============== NOTES ============== */
+  .notes {
+    margin-top: 24px;
+    background: var(--bg-deep);
+    border: 2px solid var(--bg-line);
+    padding: 22px 26px;
+    display: grid; grid-template-columns: 120px 1fr; gap: 18px;
+  }
+  .notes .lab { font-family: 'Press Start 2P'; font-size: 9px; color: var(--yellow-arcade); letter-spacing: 0.1em; }
+  .notes ul { font-family: 'VT323'; font-size: 20px; color: var(--lilac-soft); margin: 0; padding-left: 22px; line-height: 1.5; }
+  .notes ul li::marker { color: var(--purple-glow); }
+
+  /* ============== INLINE PIXEL ICONS (simple grids) ============== */
+  /* heart 8x7 for stats */
+  .heart {
+    display: inline-block;
+    width: 14px; height: 12px;
+    background: var(--magenta-1up);
+    position: relative; vertical-align: middle;
+    clip-path: polygon(0% 25%, 25% 25%, 25% 0%, 75% 0%, 75% 25%, 100% 25%, 100% 75%, 75% 75%, 75% 100%, 25% 100%, 25% 75%, 0% 75%);
+  }
+  .coin-icn {
+    display: inline-block; width: 12px; height: 12px;
+    background: var(--yellow-arcade);
+    box-shadow: inset 0 0 0 2px #b88a00;
+    vertical-align: middle;
+  }
+
+  /* ============== ELECTRONICS · INDUSTRIAL · CODE DETAILS ============== */
+  /* — circuit trace divider: a copper line with solder pads + a right-angle bend — */
+  .trace-divider { display: flex; align-items: center; gap: 0; margin: 0 0 8px; height: 14px; }
+  .trace-divider .line { height: 2px; background: var(--copper); flex: 1; opacity: 0.5; }
+  .trace-divider .pad { width: 8px; height: 8px; background: var(--bg-abyss); box-shadow: 0 0 0 2px var(--copper); }
+  .trace-divider .pad.fill { background: var(--copper); }
+  .trace-divider .seg { width: 28px; height: 2px; background: var(--copper); opacity: 0.5; }
+  .trace-divider .code { font-family: 'Press Start 2P'; font-size: 7px; color: var(--copper); letter-spacing: 0.1em; padding: 0 10px; white-space: nowrap; }
+
+  /* — IC chip glyph: dark body with pin legs via box-shadow — */
+  .chip-ic {
+    display: inline-block; width: 22px; height: 14px; background: #0c1115;
+    box-shadow: inset 0 0 0 2px var(--copper),
+      -5px -4px 0 -3px var(--copper), -5px 0 0 -3px var(--copper), -5px 4px 0 -3px var(--copper),
+       5px -4px 0 -3px var(--copper),  5px 0 0 -3px var(--copper),  5px 4px 0 -3px var(--copper);
+    position: relative; vertical-align: middle;
+  }
+  .chip-ic::after { content: ''; position: absolute; top: 3px; left: 3px; width: 4px; height: 4px; background: var(--cyan-arcade); }
+
+  /* — resistor with color bands — */
+  .resistor {
+    display: inline-flex; align-items: center; vertical-align: middle;
+    width: 30px; height: 12px; background: #d8c39a;
+    box-shadow: 0 0 0 2px var(--bg-abyss);
+    position: relative;
+  }
+  .resistor::before, .resistor::after { content: ''; position: absolute; top: 0; bottom: 0; width: 3px; }
+  .resistor::before { left: 7px; background: var(--copper); box-shadow: 4px 0 0 0 var(--cyan-arcade), 12px 0 0 0 var(--magenta-1up); }
+  .resistor .leads { position: absolute; left: -6px; right: -6px; top: 5px; height: 2px; background: var(--copper); z-index: -1; }
+
+  /* — hex nut / bolt (industrial) via clip-path hexagon — */
+  .hexnut {
+    display: inline-block; width: 18px; height: 18px; vertical-align: middle;
+    background: var(--bg-line);
+    clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
+    position: relative;
+  }
+  .hexnut::after { content: ''; position: absolute; inset: 5px; background: var(--bg-abyss); clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%); }
+  .hexnut.copper { background: var(--copper); }
+
+  /* — LED dot with glow — */
+  .led { display: inline-block; width: 9px; height: 9px; background: var(--green-life); box-shadow: 0 0 6px var(--green-life), 0 0 0 2px var(--bg-abyss); vertical-align: middle; }
+  .led.cyan { background: var(--cyan-arcade); box-shadow: 0 0 6px var(--cyan-arcade), 0 0 0 2px var(--bg-abyss); }
+  .led.amber { background: var(--copper); box-shadow: 0 0 6px var(--copper), 0 0 0 2px var(--bg-abyss); }
+
+  /* — code / register readout chip — */
+  .reg { font-family: 'VT323'; font-size: 17px; color: var(--copper); letter-spacing: 0.02em; }
+  .reg b { color: var(--cyan-arcade); }
+
+  /* — solder-pad strip used on cartridges (edge connector) — */
+  .solder-edge { display: flex; gap: 4px; padding: 6px 14px; background: #0c1115; border-top: 2px solid var(--bg-line); }
+  .solder-edge i { flex: 1; height: 8px; background: var(--copper); opacity: 0.85; }
+
+  /* — bolt heads on panel corners — */
+  .bolted { position: relative; }
+  .bolted > .bolt { position: absolute; width: 10px; height: 10px; background: var(--bg-line); clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%); z-index: 5; }
+  .bolted > .bolt.tl { top: 10px; left: 10px; } .bolted > .bolt.tr { top: 10px; right: 10px; }
+  .bolted > .bolt.bl { bottom: 10px; left: 10px; } .bolted > .bolt.br { bottom: 10px; right: 10px; }
+
+  /* ============== TWEAK-DRIVEN LAYERS ============== */
+  /* --bloom: 0..28px neon glow radius, set by Tweaks panel */
+  :root { --bloom: 0px; }
+
+  .hero .name      { text-shadow: 4px 4px 0 var(--purple-neon), 0 0 var(--bloom) var(--purple-glow); }
+  .hero .ready     { text-shadow: 0 0 var(--bloom) var(--cyan-arcade); }
+  .quest-head h3   { text-shadow: 0 0 var(--bloom) var(--cyan-arcade); }
+  .continue .gameover { text-shadow: 4px 4px 0 var(--bg-abyss), 0 0 var(--bloom) var(--red-gameover); }
+  .continue .prompt   { text-shadow: 0 0 var(--bloom) var(--yellow-arcade); }
+  .cart h4         { text-shadow: 0 0 var(--bloom) var(--purple-glow); }
+  .hero, .quest, .continue, .cart {
+    filter: drop-shadow(0 0 calc(var(--bloom) * 0.6) rgba(154,77,255,0.55));
+  }
+
+  /* CRT overlay — toggled by body.crt-on */
+  #crt-overlay { display: none; }
+  body.crt-on #crt-overlay {
+    display: block;
+    position: fixed; inset: 0; z-index: 9998;
+    pointer-events: none;
+    background:
+      repeating-linear-gradient(0deg, rgba(0,0,0,0.28) 0 1px, transparent 1px 3px),
+      radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.55) 100%);
+    mix-blend-mode: multiply;
+    animation: crt-flicker 5s steps(60) infinite;
+  }
+  body.crt-on #crt-overlay::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(rgba(255,255,255,0.04), transparent 12%);
+    animation: crt-roll 7s linear infinite;
+  }
+  body.crt-on .doc { animation: crt-jitter 6s steps(120) infinite; }
+  @keyframes crt-flicker { 0%,100%{opacity:.95} 47%{opacity:1} 49%{opacity:.88} 51%{opacity:1} }
+  @keyframes crt-roll { from { transform: translateY(-100%); } to { transform: translateY(900%); } }
+  @keyframes crt-jitter { 0%,100%{transform:translateX(0)} 50%{transform:translateX(.4px)} }
+</style>
+</head>
+<body>
+
+<div class="doc">
+
+  <!-- ========== DOC HEADER ========== -->
+  <header class="doc-header">
+    <div>
+      <div class="crumb">FILE&nbsp;01 / DESIGN&nbsp;BRIEF &nbsp;·&nbsp; <span style="color:var(--copper);">PCB&nbsp;REV.&nbsp;2</span></div>
+      <h1>PORTAFOLIO&nbsp;SBAS — CIRCUIT&nbsp;EDITION</h1>
+      <div class="sub">Mockup &amp; sistema de diseño · pixel-art + electrónica de circuitos · Juan Sebastián Arboleda T.</div>
+    </div>
+    <div class="meta">
+      <b>v 0.2 — PCB</b><br>
+      <span class="reg"><span class="led cyan"></span> VCC <b>5.0V</b> · 0x1F3A</span><br>
+      Render @ 1280px
+    </div>
+  </header>
+
+  <div class="trace-divider">
+    <span class="pad fill"></span><span class="seg"></span><span class="pad"></span>
+    <span class="line"></span>
+    <span class="code">// boot.sys — init(portfolio)</span>
+    <span class="line"></span>
+    <span class="pad"></span><span class="seg"></span><span class="pad fill"></span>
+  </div>
+
+  <!-- ========================================================== -->
+  <!-- 1. DESIGN SYSTEM                                            -->
+  <!-- ========================================================== -->
+  <section class="block">
+    <div class="block-head">
+      <span class="num">00 ›</span>
+      <h2>SYSTEM&nbsp;BOOT — DESIGN TOKENS</h2>
+      <span class="tag">PALETTE · TYPE · BUTTONS</span>
+    </div>
+
+    <div class="ds-grid">
+
+      <!-- Color palette -->
+      <div class="ds-card">
+        <h3>PALETTE <span>// 13 tokens</span></h3>
+
+        <p class="px" style="font-size:8px;color:var(--lilac-soft);letter-spacing:.1em;margin:0 0 10px;">CORE&nbsp;— PLACA / FONDOS</p>
+        <div class="swatch-row">
+          <div class="swatch"><div class="chip" style="--c:#0A1014"></div><div class="name">ABYSS</div><div class="hex">#0A1014</div></div>
+          <div class="swatch"><div class="chip" style="--c:#0F1A20"></div><div class="name">DEEP</div><div class="hex">#0F1A20</div></div>
+          <div class="swatch"><div class="chip" style="--c:#15252C"></div><div class="name">SURFACE</div><div class="hex">#15252C</div></div>
+          <div class="swatch"><div class="chip" style="--c:#213842"></div><div class="name">LINE</div><div class="hex">#213842</div></div>
+        </div>
+
+        <p class="px" style="font-size:8px;color:var(--lilac-soft);letter-spacing:.1em;margin:22px 0 10px;">MORADOS&nbsp;— ACENTO DE APOYO</p>
+        <div class="swatch-row">
+          <div class="swatch"><div class="chip" style="--c:#7E6BD6"></div><div class="name">NEON</div><div class="hex">#7E6BD6</div></div>
+          <div class="swatch"><div class="chip" style="--c:#9C8CE0"></div><div class="name">GLOW</div><div class="hex">#9C8CE0</div></div>
+          <div class="swatch"><div class="chip" style="--c:#C2B8E6"></div><div class="name">LILAC</div><div class="hex">#C2B8E6</div></div>
+          <div class="swatch"><div class="chip" style="--c:#E8F1EF"></div><div class="name">TEXT</div><div class="hex">#E8F1EF</div></div>
+        </div>
+
+        <p class="px" style="font-size:8px;color:var(--lilac-soft);letter-spacing:.1em;margin:22px 0 10px;">ACCENTS&nbsp;— SOLDER / CTA / ALERTAS</p>
+        <div class="swatch-row accents">
+          <div class="swatch"><div class="chip" style="--c:#34D1BE"></div><div class="name">CYAN</div><div class="hex">#34D1BE</div></div>
+          <div class="swatch"><div class="chip" style="--c:#C58A3D"></div><div class="name">COPPER</div><div class="hex">#C58A3D</div></div>
+          <div class="swatch"><div class="chip" style="--c:#5FBF87"></div><div class="name">LED-GRN</div><div class="hex">#5FBF87</div></div>
+          <div class="swatch"><div class="chip" style="--c:#D9596B"></div><div class="name">ALERT</div><div class="hex">#D9596B</div></div>
+        </div>
+      </div>
+
+      <!-- Typography + buttons -->
+      <div style="display:flex;flex-direction:column;gap:24px;">
+        <div class="ds-card">
+          <h3>TYPOGRAPHY <span>// 2 families</span></h3>
+          <div class="type-row">
+            <div class="label">H1 · TITLE</div>
+            <div class="preview h-px title">SBAS.DEV</div>
+            <div class="meta">Press Start 2P<br>24/28 px</div>
+          </div>
+          <div class="type-row">
+            <div class="label">H2 · UI</div>
+            <div class="preview h-px subtitle">LEVEL UP — EXPERIENCE</div>
+            <div class="meta">Press Start 2P<br>12 / 0.05em</div>
+          </div>
+          <div class="type-row">
+            <div class="label">BODY</div>
+            <div class="preview h-vt body">Fullstack developer · Shopify · React · DevOps</div>
+            <div class="meta">VT323<br>20 / 1.4</div>
+          </div>
+          <div class="type-row">
+            <div class="label">CAPTION</div>
+            <div class="preview h-px caption">PRESS START TO CONTINUE</div>
+            <div class="meta">Press Start 2P<br>8 / 0.1em</div>
+          </div>
+        </div>
+
+        <div class="ds-card">
+          <h3>BUTTONS <span>// 4 variantes × 4 estados</span></h3>
+          <div class="btn-grid">
+            <div class="btn-col">
+              <h4>PRIMARY · CYAN</h4>
+              <div class="row"><span class="lbl">rest</span><button class="pxbtn">PRESS START</button></div>
+              <div class="row"><span class="lbl">hover</span><button class="pxbtn hover">PRESS START</button></div>
+              <div class="row"><span class="lbl">press</span><button class="pxbtn press">PRESS START</button></div>
+              <div class="row"><span class="lbl">disabled</span><button class="pxbtn disabled">PRESS START</button></div>
+            </div>
+            <div class="btn-col">
+              <h4>SECUNDARIOS</h4>
+              <div class="row"><span class="lbl">purple</span><button class="pxbtn purple">VIEW QUEST</button></div>
+              <div class="row"><span class="lbl">yellow</span><button class="pxbtn yellow">CONTINUE?</button></div>
+              <div class="row"><span class="lbl">ghost</span><button class="pxbtn ghost">[ INFO ]</button></div>
+              <div class="row"><span class="lbl">icon</span><button class="pxbtn" style="background:var(--magenta-1up);color:var(--bg-abyss);">▶ PLAY <span class="arrow">›</span></button></div>
+            </div>
+          </div>
+          <p style="font-family:'VT323';font-size:18px;color:var(--txt-muted);margin:18px 0 0;">
+            Hover&nbsp;= color +1 brillo y sombra duplicada (efecto “lift”).<br>
+            Press = el botón se hunde 2 px diagonalmente; la sombra se reduce a la mitad.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================================================== -->
+  <!-- 2. HERO  (PLAYER 1 READY)                                  -->
+  <!-- ========================================================== -->
+  <section class="block">
+    <div class="block-head">
+      <span class="num">01 ›</span>
+      <h2>PLAYER&nbsp;1 READY — HERO SECTION</h2>
+      <span class="tag">SCREEN&nbsp;01 / 04</span>
+    </div>
+
+    <div class="hero">
+      <div class="hero-floaters">
+        <span style="top:18%;left:62%;">+100 XP</span>
+        <span style="top:70%;left:55%;color:var(--magenta-1up);">★</span>
+        <span style="top:30%;left:92%;color:var(--cyan-arcade);">◆</span>
+      </div>
+
+      <div class="topbar">
+        <div class="left">
+          <span class="led"></span>
+          <span>SYS: ONLINE</span>
+          <span style="color:var(--lilac-soft);">·</span>
+          <span style="color:var(--lilac-soft);">MEDELLÍN, CO</span>
+          <span class="reg">&nbsp;·&nbsp; CLK <b>3.6GHz</b></span>
+        </div>
+        <div class="right">
+          <span class="reg"><span class="led amber"></span> VCC <b>5.0V</b></span>
+          <span class="reg">TEMP <b>42°C</b></span>
+          <span class="live"><span class="heart"></span> <span class="heart"></span> <span class="heart"></span></span>
+          <span class="reg">0x7E6B</span>
+        </div>
+      </div>
+
+      <div class="hero-row">
+        <div>
+          <div class="ready">PLAYER&nbsp;1 READY</div>
+          <h1 class="name">SBAS<br>ARBOLEDA.</h1>
+          <div class="role">Software Developer <span class="pipe">·</span> SysAdmin <span class="pipe">·</span> Mecatrónica · React · DevOps</div>
+
+          <div class="stats">
+            <div><b>08</b>AÑOS DE XP</div>
+            <div><b>15+</b>QUESTS</div>
+            <div><b>11</b>CERTS</div>
+            <div><b>03</b>IDIOMAS</div>
+          </div>
+
+          <div class="reg" style="margin:-18px 0 26px;display:flex;align-items:center;gap:10px;">
+            <span class="chip-ic"></span>
+            <span>&gt; ./run --stack=fullstack &amp;&amp; solder(ideas)</span>
+          </div>
+
+          <div class="cta-row">
+            <button class="pxbtn">PRESS START <span class="arrow">▶</span></button>
+            <button class="pxbtn ghost">[ VIEW QUESTS ]</button>
+            <span class="blink">★ INSERT&nbsp;COIN</span>
+          </div>
+        </div>
+
+        <!-- Pixel art avatar (14x16 grid, drawn cell by cell) -->
+        <div class="avatar-wrap">
+          <div class="avatar">
+            <!-- row 1 --><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="k"></i><i class="k"></i><i class="k"></i><i class="k"></i><i class="k"></i><i class="k"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i>
+            <!-- row 2 --><i class="x"></i><i class="x"></i><i class="x"></i><i class="k"></i><i class="h"></i><i class="h"></i><i class="h"></i><i class="h"></i><i class="h"></i><i class="h"></i><i class="k"></i><i class="x"></i><i class="x"></i><i class="x"></i>
+            <!-- row 3 --><i class="x"></i><i class="x"></i><i class="k"></i><i class="h"></i><i class="h"></i><i class="h"></i><i class="h"></i><i class="h"></i><i class="h"></i><i class="h"></i><i class="h"></i><i class="k"></i><i class="x"></i><i class="x"></i>
+            <!-- row 4 --><i class="x"></i><i class="k"></i><i class="h"></i><i class="h"></i><i class="s"></i><i class="s"></i><i class="s"></i><i class="s"></i><i class="s"></i><i class="s"></i><i class="h"></i><i class="h"></i><i class="k"></i><i class="x"></i>
+            <!-- row 5 --><i class="x"></i><i class="k"></i><i class="h"></i><i class="s"></i><i class="s"></i><i class="s"></i><i class="s"></i><i class="s"></i><i class="s"></i><i class="s"></i><i class="s"></i><i class="h"></i><i class="k"></i><i class="x"></i>
+            <!-- row 6 --><i class="x"></i><i class="k"></i><i class="s"></i><i class="s"></i><i class="e"></i><i class="s"></i><i class="s"></i><i class="s"></i><i class="s"></i><i class="e"></i><i class="s"></i><i class="s"></i><i class="k"></i><i class="x"></i>
+            <!-- row 7 --><i class="x"></i><i class="k"></i><i class="s"></i><i class="s"></i><i class="s"></i><i class="s"></i><i class="s"></i><i class="s"></i><i class="s"></i><i class="s"></i><i class="s"></i><i class="s"></i><i class="k"></i><i class="x"></i>
+            <!-- row 8 --><i class="x"></i><i class="k"></i><i class="s"></i><i class="s"></i><i class="s"></i><i class="s"></i><i class="e"></i><i class="e"></i><i class="s"></i><i class="s"></i><i class="s"></i><i class="s"></i><i class="k"></i><i class="x"></i>
+            <!-- row 9 --><i class="x"></i><i class="x"></i><i class="k"></i><i class="sd"></i><i class="sd"></i><i class="sd"></i><i class="sd"></i><i class="sd"></i><i class="sd"></i><i class="sd"></i><i class="sd"></i><i class="k"></i><i class="x"></i><i class="x"></i>
+            <!-- row 10 --><i class="x"></i><i class="k"></i><i class="j"></i><i class="j"></i><i class="c"></i><i class="w"></i><i class="w"></i><i class="w"></i><i class="w"></i><i class="c"></i><i class="j"></i><i class="j"></i><i class="k"></i><i class="x"></i>
+            <!-- row 11 --><i class="k"></i><i class="j"></i><i class="j"></i><i class="j"></i><i class="w"></i><i class="w"></i><i class="w"></i><i class="w"></i><i class="w"></i><i class="w"></i><i class="j"></i><i class="j"></i><i class="j"></i><i class="k"></i>
+            <!-- row 12 --><i class="k"></i><i class="j"></i><i class="jd"></i><i class="j"></i><i class="w"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="w"></i><i class="j"></i><i class="jd"></i><i class="j"></i><i class="k"></i>
+            <!-- row 13 --><i class="k"></i><i class="j"></i><i class="jd"></i><i class="j"></i><i class="w"></i><i class="w"></i><i class="w"></i><i class="w"></i><i class="w"></i><i class="w"></i><i class="j"></i><i class="jd"></i><i class="j"></i><i class="k"></i>
+            <!-- row 14 --><i class="k"></i><i class="j"></i><i class="jd"></i><i class="j"></i><i class="j"></i><i class="w"></i><i class="w"></i><i class="w"></i><i class="w"></i><i class="j"></i><i class="j"></i><i class="jd"></i><i class="j"></i><i class="k"></i>
+            <!-- row 15 --><i class="x"></i><i class="k"></i><i class="j"></i><i class="j"></i><i class="k"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="k"></i><i class="j"></i><i class="j"></i><i class="k"></i><i class="x"></i>
+            <!-- row 16 --><i class="x"></i><i class="k"></i><i class="k"></i><i class="k"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="k"></i><i class="k"></i><i class="k"></i><i class="x"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="notes">
+      <div class="lab">NOTES</div>
+      <ul>
+        <li>Marquee superior con HUD de videojuego: status, ubicación, “coins” y vidas (representación lúdica de años + certificaciones).</li>
+        <li>El nombre usa <b>text-shadow</b> sólido de 4&nbsp;px en morado neón — simula la doble-tinta arcade sin agregar ruido.</li>
+        <li>Hover del CTA primario: sombra duplicada hacia abajo-derecha (efecto “coin pop”) y color +20% brillo.</li>
+        <li>El avatar es <b>pixel-real</b>: una grilla 14×16 de <code>&lt;i&gt;</code> coloreados, no SVG. Se puede reemplazar por foto pixelada del usuario.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ========================================================== -->
+  <!-- 3. EXPERIENCE  (Quest log)                                  -->
+  <!-- ========================================================== -->
+  <section class="block">
+    <div class="block-head">
+      <span class="num">02 ›</span>
+      <h2>LEVEL&nbsp;UP — QUEST LOG (EXPERIENCIA)</h2>
+      <span class="tag">SCREEN&nbsp;02 / 04</span>
+    </div>
+
+    <div class="quest">
+      <div class="quest-head">
+        <h3>QUEST LOG</h3>
+        <div class="filter">
+          <span class="on">ALL · 09</span>
+          <span>ACTIVE · 02</span>
+          <span>CLEARED · 07</span>
+        </div>
+      </div>
+
+      <div class="quest-list">
+
+        <div class="quest-row active">
+          <div class="lvl">L9</div>
+          <div class="role">SYSTEM ADMINISTRATOR<small>Mantenimiento HW · Redes LAN/WAN · Soporte L1-L2</small></div>
+          <div class="company">ROP St DigitALL</div>
+          <div class="dates">2026 — NOW</div>
+          <div class="status">ACTIVE</div>
+        </div>
+
+        <div class="quest-row active">
+          <div class="lvl">L8</div>
+          <div class="role">WEB DEVELOPER · SHOPIFY<small>Temas custom · Liquid · código limpio &amp; escalable</small></div>
+          <div class="company">ROP St DigitALL</div>
+          <div class="dates">2024 — NOW</div>
+          <div class="status">ACTIVE</div>
+        </div>
+
+        <div class="quest-row">
+          <div class="lvl">L7</div>
+          <div class="role">DEVOPS DEVELOPER<small>Azure App Service · Docker · CI/CD&nbsp;-40% deploy</small></div>
+          <div class="company">Darwin Evolution</div>
+          <div class="dates">JUL — SEP 2024</div>
+          <div class="status done">CLEARED</div>
+        </div>
+
+        <div class="quest-row">
+          <div class="lvl">L6</div>
+          <div class="role">FULLSTACK DEVELOPER<small>MERN · Blockchain trazabilidad · Web3 · microservicios</small></div>
+          <div class="company">Darwin Evolution</div>
+          <div class="dates">ABR — JUL 2024</div>
+          <div class="status done">CLEARED</div>
+        </div>
+
+        <div class="quest-row">
+          <div class="lvl">L5</div>
+          <div class="role">DIRECTOR DE TI<small>Liderazgo técnico · infraestructura</small></div>
+          <div class="company">Libresco</div>
+          <div class="dates">JUL — SEP 2023</div>
+          <div class="status done">CLEARED</div>
+        </div>
+
+        <div class="quest-row">
+          <div class="lvl">L4</div>
+          <div class="role">SOFTWARE DEVELOPER<small>WordPress · PHP · features y bugfixing en producción</small></div>
+          <div class="company">Grupo Ideasa</div>
+          <div class="dates">2022 — 2023</div>
+          <div class="status done">CLEARED</div>
+        </div>
+
+        <div class="quest-row">
+          <div class="lvl">L3</div>
+          <div class="role">WEB 3D DEVELOPER<small>Three.js · sistema solar interactivo · -25% load time</small></div>
+          <div class="company">Mind World</div>
+          <div class="dates">FEB — NOV 2022</div>
+          <div class="status done">CLEARED</div>
+        </div>
+
+        <div class="quest-row">
+          <div class="lvl">L2</div>
+          <div class="role">CTO &amp; LEAD DEV<small>Admin web · livestream · recursos pedagógicos</small></div>
+          <div class="company">Triada Academy</div>
+          <div class="dates">JUL — SEP 2022</div>
+          <div class="status done">CLEARED</div>
+        </div>
+
+        <div class="quest-row">
+          <div class="lvl">L1</div>
+          <div class="role">FREELANCE DEVELOPER<small>Landing pages, automatizaciones, WordPress, JS, Python</small></div>
+          <div class="company">Self-employed</div>
+          <div class="dates">2021 — 2022</div>
+          <div class="status archive">ARCHIVED</div>
+        </div>
+
+      </div>
+
+      <div class="xp">
+        <span class="lab"><span class="led cyan"></span> LOAD</span>
+        <div class="bar"></div>
+        <span class="num">8 200 / 10 000 ▲ LVL 9</span>
+      </div>
+    </div>
+
+    <div class="notes">
+      <div class="lab">NOTES</div>
+      <ul>
+        <li>Cada quest = 1 rol. Columna izquierda muestra el <b>nivel</b> (L1 → L9, mapea a la antigüedad/seniority).</li>
+        <li>Filtros tipo pestaña arcade: <b>ALL / ACTIVE / CLEARED</b>. La activa usa amarillo arcade.</li>
+        <li>Estados: ACTIVE = verde-vida, CLEARED = morado-piedra (terminado), ARCHIVED = transparente con borde.</li>
+        <li>Sub-rol en VT323 dentro de la misma fila evita los “bloques de texto” — máximo 1 línea de detalle.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ========================================================== -->
+  <!-- 4. PROJECTS  (Inventory / Cartridges)                       -->
+  <!-- ========================================================== -->
+  <section class="block">
+    <div class="block-head">
+      <span class="num">03 ›</span>
+      <h2>INVENTORY — STAGES &amp; CARTRIDGES (PROYECTOS)</h2>
+      <span class="tag">SCREEN&nbsp;03 / 04</span>
+    </div>
+
+    <div class="cart-grid">
+
+      <!-- card 1 -->
+      <article class="cart">
+        <div class="label-strip"><span>CART · 01</span><span class="num">▶ 1986</span></div>
+        <div class="screen">
+          <div class="placeholder">[ DROP ZONE ]<br>e-commerce ·&nbsp;shopify</div>
+        </div>
+        <div class="body">
+          <h4>SHOPIFY THEME LAB</h4>
+          <p class="desc">Temas custom &amp; Liquid templating para clientes e-commerce. Código limpio y escalable.</p>
+          <div class="tech">
+            <span class="pill t-shop">SHOPIFY</span>
+            <span class="pill t-react">LIQUID</span>
+            <span class="pill t-react">JS / TS</span>
+            <span class="pill t-do">SASS</span>
+          </div>
+          <div class="actions">
+            <span class="play">▶ PLAY</span>
+            <span class="info">i</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- card 2 -->
+      <article class="cart">
+        <div class="label-strip"><span>CART · 02</span><span class="num">▶ 1991</span></div>
+        <div class="screen">
+          <div class="pixel-art-sun"></div>
+          <div class="placeholder">[ DROP ZONE ]<br>3d &middot; three.js</div>
+        </div>
+        <div class="body">
+          <h4>MIND WORLD 3D</h4>
+          <p class="desc">Sistema solar interactivo en Three.js. Controles de cámara custom · −25% carga.</p>
+          <div class="tech">
+            <span class="pill t-3d">THREE.JS</span>
+            <span class="pill t-react">JS</span>
+            <span class="pill t-do">HTML5</span>
+            <span class="pill t-do">CSS3</span>
+          </div>
+          <div class="actions">
+            <span class="play">▶ PLAY</span>
+            <span class="info">i</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- card 3 -->
+      <article class="cart">
+        <div class="label-strip"><span>CART · 03</span><span class="num">▶ 1994</span></div>
+        <div class="screen">
+          <div class="placeholder">[ DROP ZONE ]<br>blockchain · web3</div>
+        </div>
+        <div class="body">
+          <h4>DARWIN TRACE</h4>
+          <p class="desc">Plataforma de trazabilidad blockchain. MERN + Web3 + microservicios.</p>
+          <div class="tech">
+            <span class="pill t-react">REACT</span>
+            <span class="pill t-node">NODE.JS</span>
+            <span class="pill t-bc">WEB3.0</span>
+            <span class="pill t-do">MONGO</span>
+          </div>
+          <div class="actions">
+            <span class="play">▶ PLAY</span>
+            <span class="info">i</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- card 4 -->
+      <article class="cart">
+        <div class="label-strip"><span>CART · 04</span><span class="num">▶ 1996</span></div>
+        <div class="screen">
+          <div class="placeholder">[ DROP ZONE ]<br>devops · azure</div>
+        </div>
+        <div class="body">
+          <h4>CI/CD PIPELINES</h4>
+          <p class="desc">Azure App Service + Docker. Automatización completa del ciclo de despliegue.</p>
+          <div class="tech">
+            <span class="pill t-do">AZURE</span>
+            <span class="pill t-do">DOCKER</span>
+            <span class="pill t-node">CI/CD</span>
+            <span class="pill t-react">GITHUB</span>
+          </div>
+          <div class="actions">
+            <span class="play">▶ PLAY</span>
+            <span class="info">i</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- card 5 -->
+      <article class="cart">
+        <div class="label-strip"><span>CART · 05</span><span class="num">▶ 1998</span></div>
+        <div class="screen">
+          <div class="placeholder">[ DROP ZONE ]<br>academia · wp</div>
+        </div>
+        <div class="body">
+          <h4>TRIADA ACADEMY</h4>
+          <p class="desc">Admin web · livestream &amp; recursos. +35% velocidad &amp; hardening.</p>
+          <div class="tech">
+            <span class="pill t-wp">WORDPRESS</span>
+            <span class="pill t-react">PHP</span>
+            <span class="pill t-do">SEO</span>
+          </div>
+          <div class="actions">
+            <span class="play">▶ PLAY</span>
+            <span class="info">i</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- card 6 -->
+      <article class="cart">
+        <div class="label-strip"><span>CART · 06</span><span class="num">▶ ??</span></div>
+        <div class="screen" style="background:repeating-linear-gradient(45deg,#0C1A1E 0 12px,#16313A 12px 24px);">
+          <div class="placeholder" style="color:var(--yellow-arcade);border-color:var(--yellow-arcade);">[ ??? ]<br>SECRET STAGE</div>
+        </div>
+        <div class="body">
+          <h4>NEXT QUEST</h4>
+          <p class="desc">Slot reservado para el próximo proyecto. Drop&nbsp;the&nbsp;cartridge.</p>
+          <div class="tech">
+            <span class="pill t-react">SOON™</span>
+          </div>
+          <div class="actions">
+            <span class="play" style="background:var(--yellow-arcade);">+ ADD</span>
+            <span class="info">i</span>
+          </div>
+        </div>
+      </article>
+
+    </div>
+
+    <div class="notes">
+      <div class="lab">NOTES</div>
+      <ul>
+        <li>Cada tarjeta = <b>cartucho NES</b>: pestañas superiores (·::before / ::after·), franja-etiqueta morada, “pantalla” con scanlines.</li>
+        <li><b>Imagen del proyecto:</b> dentro de la “pantalla” superior — un slot fijo de 140&nbsp;px con borde discontinuo lila que indica drop-zone.</li>
+        <li><b>Tecnologías:</b> pills tipo HUD con un mini-sprite 8×8 a la izquierda (cuadrito + sombra) coloreado por familia.</li>
+        <li>CTAs: <b>▶ PLAY</b> (cyan, primario, abre demo) y <b>[ i ]</b> (ghost, abre detalle / GitHub).</li>
+        <li>Grid de 3 columnas en desktop, 2 en tablet, 1 en móvil. Hover: cartucho “sale” 4&nbsp;px arriba-izq con sombra duplicada.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ========================================================== -->
+  <!-- 5. FOOTER  (Continue?)                                     -->
+  <!-- ========================================================== -->
+  <section class="block" style="margin-bottom:32px;">
+    <div class="trace-divider">
+      <span class="pad fill"></span><span class="seg"></span><span class="pad"></span>
+      <span class="line"></span>
+      <span class="code">// EOF — power_management.c</span>
+      <span class="line"></span>
+      <span class="pad"></span><span class="seg"></span><span class="pad fill"></span>
+    </div>
+    <div class="block-head">
+      <span class="num">04 ›</span>
+      <h2>RECONNECT? — FOOTER DE CONTACTO</h2>
+      <span class="tag">SCREEN&nbsp;04 / 04</span>
+    </div>
+
+    <div class="continue bolted">
+      <span class="bolt tl"></span><span class="bolt tr"></span><span class="bolt bl"></span><span class="bolt br"></span>
+      <div class="gameover">POWER OFF</div>
+      <div class="prompt">RECONNECT? &nbsp; YES / NO</div>
+      <div class="count">10 &nbsp; 09 &nbsp; 08 &nbsp; <b>07</b> &nbsp; 06 &nbsp; 05 &nbsp; 04 &nbsp; 03 &nbsp; 02 &nbsp; 01</div>
+
+      <div class="reg" style="margin-bottom:28px;display:flex;align-items:center;justify-content:center;gap:12px;">
+        <span class="hexnut copper"></span>
+        <span>&gt; ping sebastian — awaiting handshake · 0xC0FFEE</span>
+        <span class="hexnut"></span>
+      </div>
+
+      <div class="links">
+        <a class="link gh" href="#">
+          <div class="icn"></div>
+          <h5>GITHUB</h5>
+          <p>github.com/Sbas0611</p>
+        </a>
+        <a class="link li" href="#">
+          <div class="icn"></div>
+          <h5>LINKEDIN</h5>
+          <p>in/sebastián-arboleda</p>
+        </a>
+        <a class="link ml" href="#">
+          <div class="icn"></div>
+          <h5>EMAIL</h5>
+          <p>dev.arboleda@gmail.com</p>
+        </a>
+      </div>
+
+      <div style="display:flex;justify-content:center;gap:14px;">
+        <button class="pxbtn yellow">▶ YES — CONTACT ME</button>
+        <button class="pxbtn ghost">[ NO · BACK TO TOP ]</button>
+      </div>
+
+      <div class="footer-bar">
+        <span>© 2026 SBAS.DEV &nbsp;·&nbsp; MADE IN MEDELLÍN</span>
+        <span class="credits">PRESS <b>ESC</b> TO QUIT &nbsp;·&nbsp; <b>↑↑↓↓←→←→BA</b></span>
+      </div>
+    </div>
+
+    <div class="notes">
+      <div class="lab">NOTES</div>
+      <ul>
+        <li>Cuenta atrás del “continue” real del coin-op: el número actual parpadea en cyan. Refuerza la urgencia sin gritar.</li>
+        <li>Tres bloques de contacto con icono pixel (cruz de 5 cuadritos hecha con <b>box-shadow</b>, no SVG). Cada uno con su color HUD.</li>
+        <li>El footer-bar inferior trae el Konami code como huevo de pascua — guiño obligatorio del medio.</li>
+        <li>Bouncing: el botón YES está siempre <b>activo</b> (yellow arcade); NO es ghost para no competir.</li>
+      </ul>
+    </div>
+  </section>
+
+</div>
+
+<div id="crt-overlay"></div>
+<div id="tweaks-root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel" src="tweaks-app.jsx"></script>
+
+</body>
+</html>
